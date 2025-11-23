@@ -64,13 +64,13 @@ ENTITY:
 DICT:
   id: dict.vitals.lab.v1
   kind: measurement
-  field.ts: timestamp
-  field.bp: blood_pressure
-  field.hr: heart_rate
-  field.temp: temperature_c
-  field.hgb: hemoglobin_g_dl
-  field.wbc: wbc_k_ul
-  field.plt: platelets_k_ul
+  field.t: timestamp
+  field.b: blood_pressure
+  field.h: heart_rate
+  field.c: temperature_c
+  field.g: hemoglobin_g_dl
+  field.w: wbc_k_ul
+  field.p: platelets_k_ul
 
 SET:
   id: vitals-rolling-6w
@@ -78,31 +78,31 @@ SET:
   kind: measurements
 
 ROW:
-  ts: 2025-10-01
-  bp: 116/72
-  hr: 70
-  temp: 36.6
-  hgb: 11.4
-  wbc: 5.8
-  plt: 232
+  t: 2025-10-01
+  b: 116/72
+  h: 70
+  c: 36.6
+  g: 11.4
+  w: 5.8
+  p: 232
 
 ROW:
-  ts: 2025-10-22
-  bp: 117/73
-  hr: 71
-  temp: 36.7
-  hgb: 11.3
-  wbc: 5.5
-  plt: 225
+  t: 2025-10-22
+  b: 117/73
+  h: 71
+  c: 36.7
+  g: 11.3
+  w: 5.5
+  p: 225
 
 ROW:
-  ts: 2025-11-12
-  bp: 118/74
-  hr: 72
-  temp: 36.8
-  hgb: 11.2
-  wbc: 5.4
-  plt: 219
+  t: 2025-11-12
+  b: 118/74
+  h: 72
+  c: 36.8
+  g: 11.2
+  w: 5.4
+  p: 219
 
 ENTITY:
   id: imaging-result-ct
@@ -116,14 +116,14 @@ QUERY:
   id: q.lab-trend
   from.set: vitals-rolling-6w
   using.dict: dict.vitals.lab.v1
-  select: ts,hgb,plt
-  where: ts >= "2025-09-01"
-  sort: ts asc
+  select: t,g,p
+  where: t >= "2025-09-01"
+  sort: t asc
 
 QUERY:
   id: q.flagged-metrics
   from.set: vitals-rolling-6w
   using.dict: dict.vitals.lab.v1
-  select: ts,hgb
-  where: hgb < 11.0
+  select: t,g
+  where: g < 11.0
   limit: 3
