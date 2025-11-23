@@ -102,6 +102,8 @@ SELECT *                          # All fields
 SELECT field1, field2             # Specific fields
 SELECT COUNT(*)                   # Count records
 SELECT SUM(price), AVG(rating)    # Aggregations
+SELECT price * quantity as total  # Arithmetic expressions
+SELECT (revenue - cost) / cost * 100 as margin_pct  # Complex calculations
 ```
 
 ### FROM Clause
@@ -123,6 +125,15 @@ WHERE field > value               # Greater than
 WHERE field < value               # Less than
 WHERE field >= value              # Greater or equal
 WHERE field <= value              # Less or equal
+```
+
+**Arithmetic Operators**:
+```aicml
+SELECT price * quantity as total  # Multiplication
+SELECT revenue - cost as profit   # Subtraction
+SELECT price + tax as final       # Addition
+SELECT total / count as average   # Division
+SELECT value % 10 as remainder    # Modulo
 ```
 
 **Logical Operators**:

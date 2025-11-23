@@ -166,6 +166,7 @@ END
 
 **AICQL Operators:**
 - Comparison: `=`, `!=`, `>`, `<`, `>=`, `<=`
+- Arithmetic: `+`, `-`, `*`, `/`, `%` (modulo)
 - Logical: `AND`, `OR`, `NOT`
 - String: `CONTAINS`, `STARTS_WITH`, `ENDS_WITH`
 - Set: `IN`, `NOT IN`

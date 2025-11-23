@@ -116,9 +116,19 @@ order_by_clause ::= [ whitespace ] "ORDER BY" whitespace field_name [ whitespace
 
 limit_clause ::= [ whitespace ] "LIMIT" whitespace number newline
 
-field_list ::= field_name { "," whitespace field_name }
-             | function_call { "," whitespace function_call }
+field_list ::= field_expression { "," whitespace field_expression }
              | "*"
+
+field_expression ::= field_name
+                   | function_call
+                   | arithmetic_expression [ whitespace "as" whitespace identifier ]
+
+arithmetic_expression ::= field_name
+                        | number
+                        | arithmetic_expression whitespace arithmetic_operator whitespace arithmetic_expression
+                        | "(" arithmetic_expression ")"
+
+arithmetic_operator ::= "+" | "-" | "*" | "/" | "%"
 
 field_name ::= identifier [ "." identifier ]
 
@@ -135,6 +145,7 @@ condition ::= simple_condition
 simple_condition ::= field_name whitespace comparison_operator whitespace value
                    | field_name whitespace string_operator whitespace value
                    | field_name whitespace set_operator whitespace "(" value_list ")"
+                   | arithmetic_expression whitespace comparison_operator whitespace arithmetic_expression
 
 comparison_operator ::= "=" | "!=" | ">" | "<" | ">=" | "<="
 
@@ -198,13 +209,15 @@ The following keywords are reserved (case-insensitive in block headers):
 
 From highest to lowest:
 
-1. Function calls: `COUNT()`, `SUM()`, etc.
-2. Comparison operators: `=`, `!=`, `>`, `<`, `>=`, `<=`
-3. String operators: `CONTAINS`, `STARTS_WITH`, `ENDS_WITH`
-4. Set operators: `IN`, `NOT IN`
-5. NOT
-6. AND
-7. OR
+1. Parentheses: `()`
+2. Function calls: `COUNT()`, `SUM()`, etc.
+3. Arithmetic operators: `*`, `/`, `%` (higher) then `+`, `-` (lower)
+4. Comparison operators: `=`, `!=`, `>`, `<`, `>=`, `<=`
+5. String operators: `CONTAINS`, `STARTS_WITH`, `ENDS_WITH`
+6. Set operators: `IN`, `NOT IN`
+7. NOT
+8. AND
+9. OR
 
 ## Comments
 
