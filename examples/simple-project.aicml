@@ -1,0 +1,119 @@
+# Simple Project Tracking Example
+
+A minimal AI:CML document for tracking software development projects.
+
+DICT aliases
+  backend: Backend Development
+  frontend: Frontend Development
+  devops: DevOps and Infrastructure
+  design: UI/UX Design
+END
+
+DICT statuses
+  todo: Not Started
+  progress: In Progress
+  review: Under Review
+  done: Completed
+END
+
+## Team Members
+
+ENTITY Dev_001
+  name: Alice Johnson
+  role: Senior Developer
+  specialty: @backend
+  email: alice@example.com
+END
+
+ENTITY Dev_002
+  name: Bob Smith
+  role: Frontend Developer
+  specialty: @frontend
+  email: bob@example.com
+END
+
+ENTITY Dev_003
+  name: Carol Davis
+  role: DevOps Engineer
+  specialty: @devops
+  email: carol@example.com
+END
+
+## Project Tasks
+
+ENTITY Task_001
+  id: TASK-001
+  title: Implement user authentication
+  assigned_to: Alice Johnson
+  category: @backend
+  status: @done
+  priority: High
+  estimated_hours: 16
+  actual_hours: 18
+END
+
+ENTITY Task_002
+  id: TASK-002
+  title: Design dashboard UI
+  assigned_to: Bob Smith
+  category: @frontend
+  status: @progress
+  priority: High
+  estimated_hours: 24
+  actual_hours: 12
+END
+
+ENTITY Task_003
+  id: TASK-003
+  title: Setup CI/CD pipeline
+  assigned_to: Carol Davis
+  category: @devops
+  status: @review
+  priority: Medium
+  estimated_hours: 12
+  actual_hours: 14
+END
+
+## Sprint Progress
+
+ROW Sprint_Week1
+  | TaskID | Status | HoursLogged | RemainingHours |
+  | TASK-001 | @done | 18 | 0 |
+  | TASK-002 | @progress | 12 | 12 |
+  | TASK-003 | @review | 14 | 0 |
+END
+
+## Task Categories
+
+SET TaskCategories
+  @backend
+  @frontend
+  @devops
+  @design
+  Testing
+  Documentation
+END
+
+## Project Queries
+
+QUERY HighPriorityTasks
+  SELECT title, assigned_to, status
+  FROM ENTITY Task
+  WHERE priority = High
+END
+
+QUERY InProgressTasks
+  SELECT title, category, assigned_to
+  FROM ENTITY Task
+  WHERE status = @progress
+END
+
+QUERY TotalHoursLogged
+  SELECT SUM(HoursLogged)
+  FROM ROW Sprint_Week1
+END
+
+This simple example demonstrates the core AI:CML features in a
+project tracking context. The format is easy to read and edit
+manually, while still supporting structured queries for project
+management insights.

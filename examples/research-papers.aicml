@@ -1,0 +1,207 @@
+# Research Paper Database - AI:CML Example
+
+This document demonstrates AI:CML format for academic research papers,
+showing how to organize bibliographic data, author information, and
+citation relationships in a queryable format.
+
+DICT aliases
+  cs: Computer Science
+  ai: Artificial Intelligence
+  ml: Machine Learning
+  nlp: Natural Language Processing
+  cv: Computer Vision
+  db: Database Systems
+END
+
+DICT venues
+  neurips: Conference on Neural Information Processing Systems
+  icml: International Conference on Machine Learning
+  iclr: International Conference on Learning Representations
+  acl: Association for Computational Linguistics
+  cvpr: Computer Vision and Pattern Recognition
+END
+
+DICT institutions
+  mit: Massachusetts Institute of Technology
+  stanford: Stanford University
+  berkeley: University of California, Berkeley
+  cmu: Carnegie Mellon University
+  oxford: University of Oxford
+END
+
+## Author Information
+
+ENTITY Author_001
+  id: auth-hinton
+  name: Geoffrey Hinton
+  affiliation: @mit
+  email: hinton@example.edu
+  h_index: 175
+  total_citations: 485000
+  research_areas: @ai, @ml
+END
+
+ENTITY Author_002
+  id: auth-bengio
+  name: Yoshua Bengio
+  affiliation: @stanford
+  email: bengio@example.edu
+  h_index: 165
+  total_citations: 425000
+  research_areas: @ai, @ml, @nlp
+END
+
+ENTITY Author_003
+  id: auth-lecun
+  name: Yann LeCun
+  affiliation: @berkeley
+  email: lecun@example.edu
+  h_index: 155
+  total_citations: 395000
+  research_areas: @ai, @cv, @ml
+END
+
+## Research Papers
+
+ENTITY Paper_001
+  id: paper-attention-2017
+  title: Attention Is All You Need
+  authors: auth-vaswani, auth-shazeer, auth-parmar
+  year: 2017
+  venue: @neurips
+  field: @nlp
+  citations: 85000
+  keywords: transformer, attention, neural networks
+  abstract: We propose a new simple network architecture based solely on attention mechanisms
+  doi: 10.5555/3295222.3295349
+END
+
+ENTITY Paper_002
+  id: paper-bert-2019
+  title: BERT - Pre-training of Deep Bidirectional Transformers
+  authors: auth-devlin, auth-chang
+  year: 2019
+  venue: @acl
+  field: @nlp
+  citations: 65000
+  keywords: BERT, transformers, language models
+  abstract: We introduce a new language representation model called BERT
+  doi: 10.18653/v1/N19-1423
+END
+
+ENTITY Paper_003
+  id: paper-resnet-2016
+  title: Deep Residual Learning for Image Recognition
+  authors: auth-he, auth-zhang
+  year: 2016
+  venue: @cvpr
+  field: @cv
+  citations: 125000
+  keywords: ResNet, deep learning, image classification
+  abstract: We present a residual learning framework to ease the training of networks
+  doi: 10.1109/CVPR.2016.90
+END
+
+ENTITY Paper_004
+  id: paper-gan-2014
+  title: Generative Adversarial Networks
+  authors: auth-goodfellow
+  year: 2014
+  venue: @neurips
+  field: @ml
+  citations: 55000
+  keywords: GAN, generative models, adversarial training
+  abstract: We propose a new framework for estimating generative models via an adversarial process
+  doi: 10.5555/2969033.2969125
+END
+
+## Citation Network
+
+ROW CitationGraph
+  | CitingPaper | CitedPaper | CitationType |
+  | paper-bert-2019 | paper-attention-2017 | extends |
+  | paper-bert-2019 | paper-gan-2014 | references |
+  | paper-resnet-2016 | paper-gan-2014 | applies |
+END
+
+## Publication Statistics
+
+ROW VenueStats_2020_2024
+  | Venue | Year | Submissions | Accepted | AcceptanceRate |
+  | @neurips | 2020 | 9454 | 1900 | 20.1 |
+  | @neurips | 2021 | 9122 | 2344 | 25.7 |
+  | @icml | 2020 | 4990 | 1088 | 21.8 |
+  | @icml | 2021 | 5513 | 1184 | 21.5 |
+  | @acl | 2020 | 3088 | 571 | 18.5 |
+  | @acl | 2021 | 2905 | 677 | 23.3 |
+END
+
+## Research Topics
+
+SET TopResearchAreas
+  @ai
+  @ml
+  @nlp
+  @cv
+  @db
+  Reinforcement Learning
+  Robotics
+  Quantum Computing
+END
+
+SET MajorConferences
+  @neurips
+  @icml
+  @iclr
+  @acl
+  @cvpr
+  AAAI
+  IJCAI
+END
+
+## Queries
+
+QUERY HighlyCitedPapers
+  SELECT title, authors, citations, year
+  FROM ENTITY
+  WHERE citations > 50000
+  ORDER BY citations DESC
+END
+
+QUERY RecentNLPPapers
+  SELECT title, year, venue
+  FROM ENTITY
+  WHERE field = @nlp AND year >= 2018
+  ORDER BY year DESC
+END
+
+QUERY TopAuthors
+  SELECT name, h_index, total_citations
+  FROM ENTITY
+  WHERE h_index > 150
+  ORDER BY total_citations DESC
+END
+
+QUERY PapersByVenue
+  SELECT venue, COUNT(*)
+  FROM ENTITY Paper
+  GROUP BY venue
+  ORDER BY COUNT(*) DESC
+END
+
+QUERY CitationAnalysis
+  SELECT CitingPaper, COUNT(CitedPaper)
+  FROM ROW CitationGraph
+  GROUP BY CitingPaper
+END
+
+## Research Insights
+
+The above research database demonstrates how AI:CML can organize complex
+academic information in a structured yet human-readable format. The use
+of aliases for common terms (institutions, venues, research areas) 
+significantly reduces token usage when AI systems process this document.
+
+The embedded AICQL queries enable quick analysis of citation patterns,
+research trends, and collaboration networks without requiring external
+database systems or query interfaces.
