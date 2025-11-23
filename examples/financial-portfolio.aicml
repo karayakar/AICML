@@ -1,281 +1,154 @@
-# Financial Portfolio - AI:CML Example
+PAGE:
+  id: financial-portfolio-2025
+  title: Multi-Asset Client Portfolio
+  type: briefing
+  lang: en
+  owner: wealth-strategy
 
-This example demonstrates AI:CML for personal finance tracking, including
-investments, transactions, and portfolio analytics.
+META:
+  name: as-of
+  value: 2025-11-23
 
-DICT aliases
-  stocks: Stock Securities
-  bonds: Bond Securities
-  crypto: Cryptocurrency Assets
-  etf: Exchange-Traded Funds
-  realestate: Real Estate Holdings
-END
+META:
+  name: currency
+  value: USD
 
-DICT sectors
-  tech: Technology Sector
-  finance: Financial Services
-  healthcare: Healthcare and Pharmaceuticals
-  energy: Energy and Utilities
-  consumer: Consumer Goods and Services
-END
+SECTION:
+  id: overview
+  level: 1
+  importance: high
+  blocks: holdings-summary,risk-snapshot
 
-DICT risk_levels
-  low: Low Risk (Conservative)
-  medium: Medium Risk (Balanced)
-  high: High Risk (Aggressive)
-END
+TITLE:
+  Q4 2025 Allocation Overview
 
-DICT accounts
-  401k: 401(k) Retirement Account
-  ira: Individual Retirement Account
-  brokerage: Taxable Brokerage Account
-  savings: High-Yield Savings Account
-END
+P:
+  Client maintains a balanced posture with 55% equities, 30% fixed income, and 15% alternatives.
+  Portfolio beta tracks 0.82 versus the S&P 500 while delivering a rolling 3-year net return of 8.7%.
 
-## Portfolio Holdings
+NOTE:
+  type: info
+  importance: high
+  text: Liquidity runway exceeds 18 months of planned withdrawals.
 
-ENTITY Holding_001
-  id: HOLD-AAPL-001
-  symbol: AAPL
-  name: Apple Inc.
-  asset_type: @stocks
-  sector: @tech
-  quantity: 50
-  purchase_price: 145.50
-  current_price: 178.25
-  account: @401k
-  risk: @medium
-  purchase_date: 2023-03-15
-END
+SECTION:
+  id: action-items
+  level: 1
+  order: 2
 
-ENTITY Holding_002
-  id: HOLD-MSFT-001
-  symbol: MSFT
-  name: Microsoft Corporation
-  asset_type: @stocks
-  sector: @tech
-  quantity: 35
-  purchase_price: 310.20
-  current_price: 368.50
-  account: @401k
-  risk: @medium
-  purchase_date: 2023-06-20
-END
+TITLE:
+  Tactical Actions
 
-ENTITY Holding_003
-  id: HOLD-VOO-001
-  symbol: VOO
-  name: Vanguard S&P 500 ETF
-  asset_type: @etf
-  sector: Diversified
-  quantity: 100
-  purchase_price: 385.75
-  current_price: 412.30
-  account: @ira
-  risk: @medium
-  purchase_date: 2023-01-10
-END
+LIST:
+  style: unordered
 
-ENTITY Holding_004
-  id: HOLD-BTC-001
-  symbol: BTC
-  name: Bitcoin
-  asset_type: @crypto
-  sector: Digital Assets
-  quantity: 0.5
-  purchase_price: 42000.00
-  current_price: 58000.00
-  account: @brokerage
-  risk: @high
-  purchase_date: 2023-09-05
-END
+ITEM:
+  Rebalance U.S. large-cap sleeve back to 35% target weight after Q4 inflows.
 
-ENTITY Holding_005
-  id: HOLD-TLT-001
-  symbol: TLT
-  name: iShares 20+ Year Treasury Bond ETF
-  asset_type: @bonds
-  sector: Government Bonds
-  quantity: 75
-  purchase_price: 92.50
-  current_price: 88.75
-  account: @ira
-  risk: @low
-  purchase_date: 2023-04-12
-END
+ITEM:
+  Ladder new investment-grade munis to extend duration by ~0.4 years without breaching IPS caps.
 
-## Transaction History
+ITEM:
+  Review hedge-fund gate terms before adding $250K to alternatives bucket.
 
-ROW Transactions_2024
-  | Date | Type | Symbol | Quantity | Price | Amount | Account |
-  | 2024-01-15 | BUY | VOO | 10 | 410.50 | -4105.00 | @ira |
-  | 2024-02-20 | BUY | AAPL | 10 | 175.25 | -1752.50 | @401k |
-  | 2024-03-10 | SELL | BTC | 0.1 | 62000.00 | 6200.00 | @brokerage |
-  | 2024-04-05 | BUY | MSFT | 5 | 395.75 | -1978.75 | @401k |
-  | 2024-05-15 | DIVIDEND | VOO | 100 | 0.00 | 142.50 | @ira |
-  | 2024-06-01 | DIVIDEND | AAPL | 50 | 0.00 | 12.00 | @401k |
-  | 2024-07-20 | BUY | TLT | 25 | 89.25 | -2231.25 | @ira |
-  | 2024-08-15 | SELL | MSFT | 5 | 415.50 | 2077.50 | @401k |
-END
+ENTITY:
+  id: client-profile
+  kind: investor
+  name: Aurora Chen Family Trust
+  risk.band: moderate
+  risk.score: 54
+  liquidity.months: 18
+  advisor.primary: Devon Ortiz
+  advisor.backup: Priya Sharma
 
-## Portfolio Performance
+DICT:
+  id: dict.holdings.v1
+  kind: position
+  field.sym: ticker
+  field.wt: weight_pct
+  field.mv: market_value_usd
+  field.seg: segment
+  field.exp: strategy_exposure
+  field.ytd: ytd_return_pct
 
-ROW MonthlyPerformance
-  | Month | TotalValue | GainLoss | GainLossPct | Contributions | Withdrawals |
-  | 2024-01 | 85000.00 | 2500.00 | 3.03 | 1000.00 | 0.00 |
-  | 2024-02 | 88500.00 | 3500.00 | 4.12 | 1000.00 | 0.00 |
-  | 2024-03 | 91200.00 | 2700.00 | 3.05 | 1000.00 | 0.00 |
-  | 2024-04 | 94800.00 | 3600.00 | 3.95 | 1000.00 | 0.00 |
-  | 2024-05 | 93500.00 | -1300.00 | -1.37 | 1000.00 | 0.00 |
-  | 2024-06 | 96200.00 | 2700.00 | 2.89 | 1000.00 | 0.00 |
-  | 2024-07 | 99100.00 | 2900.00 | 3.01 | 1000.00 | 0.00 |
-  | 2024-08 | 102400.00 | 3300.00 | 3.33 | 1000.00 | 0.00 |
-  | 2024-09 | 101800.00 | -600.00 | -0.59 | 1000.00 | 0.00 |
-  | 2024-10 | 105600.00 | 3800.00 | 3.73 | 1000.00 | 0.00 |
-END
+SET:
+  id: holdings-2025-q4
+  dict: dict.holdings.v1
+  kind: holdings
+  base_fx: USD
 
-## Asset Allocation
+ROW:
+  sym: VOO
+  wt: 0.32
+  mv: 1_280_000
+  seg: U.S. Large Cap ETF
+  exp: Equity Core
+  ytd: 0.125
 
-ROW AssetAllocation
-  | AssetType | CurrentValue | Percentage | TargetPct |
-  | @stocks | 45000.00 | 42.6 | 40.0 |
-  | @etf | 48805.00 | 46.2 | 45.0 |
-  | @bonds | 6656.25 | 6.3 | 10.0 |
-  | @crypto | 29000.00 | 4.9 | 5.0 |
-END
+ROW:
+  sym: IXUS
+  wt: 0.13
+  mv: 520_000
+  seg: International Equity ETF
+  exp: Equity Satellite
+  ytd: 0.098
 
-## Account Balances
+ROW:
+  sym: LQD
+  wt: 0.18
+  mv: 720_000
+  seg: Investment Grade Credit ETF
+  exp: Fixed Income Core
+  ytd: 0.045
 
-ROW AccountSummary
-  | Account | Balance | YTD_Return | ReturnPct |
-  | @401k | 38562.50 | 4850.00 | 14.4 |
-  | @ira | 47886.25 | 3125.50 | 7.0 |
-  | @brokerage | 29000.00 | 8450.00 | 41.1 |
-  | @savings | 15000.00 | 180.00 | 1.2 |
-END
+ROW:
+  sym: MUB
+  wt: 0.12
+  mv: 480_000
+  seg: Municipal Ladder ETF
+  exp: Fixed Income Tax Advantaged
+  ytd: 0.032
 
-## Investment Goals
+ROW:
+  sym: BCOM
+  wt: 0.07
+  mv: 280_000
+  seg: Broad Commodities ETF
+  exp: Inflation Hedge
+  ytd: 0.064
 
-ENTITY Goal_Retirement
-  name: Retirement Fund
-  target_amount: 2000000.00
-  current_amount: 86448.75
-  target_date: 2050-12-31
-  monthly_contribution: 1500.00
-  projected_return: 7.5
-END
+ROW:
+  sym: HFRX
+  wt: 0.08
+  mv: 320_000
+  seg: Multi-Strategy Hedge Fund Sleeve
+  exp: Alternatives Diversifier
+  ytd: 0.051
 
-ENTITY Goal_House
-  name: House Down Payment
-  target_amount: 100000.00
-  current_amount: 29000.00
-  target_date: 2028-06-30
-  monthly_contribution: 1200.00
-  projected_return: 5.0
-END
+ENTITY:
+  id: performance-kpis
+  kind: analytics
+  nav.current: 4_000_000
+  nav.one_year_ago: 3_640_000
+  nav.five_year_ago: 2_900_000
+  return.ttm_pct: 0.099
+  return.rolling3y_pct: 0.087
+  drawdown.max_pct: 0.118
+  income.ttm_usd: 118_500
 
-## Watchlist
+QUERY:
+  id: q.top.draw
+  from.set: holdings-2025-q4
+  using.dict: dict.holdings.v1
+  select: sym,wt,mv,ytd
+  where: wt >= 0.1
+  sort: wt desc
+  limit: 5
 
-SET Watchlist
-  GOOGL
-  AMZN
-  NVDA
-  TSM
-  ETH
-  GLD
-  VTI
-END
-
-## Portfolio Queries
-
-QUERY CurrentHoldings
-  SELECT symbol, name, quantity, current_price, account
-  FROM ENTITY Holding
-  ORDER BY symbol ASC
-END
-
-QUERY UnrealizedGains
-  SELECT 
-    symbol,
-    name,
-    (current_price - purchase_price) * quantity as gain_loss,
-    ((current_price - purchase_price) / purchase_price) * 100 as gain_loss_pct
-  FROM ENTITY Holding
-  ORDER BY gain_loss DESC
-END
-
-QUERY HighRiskHoldings
-  SELECT symbol, name, asset_type, risk
-  FROM ENTITY Holding
-  WHERE risk = @high
-END
-
-QUERY TechSectorExposure
-  SELECT symbol, name, sector, quantity, current_price
-  FROM ENTITY Holding
-  WHERE sector = @tech
-END
-
-QUERY RetirementAccounts
-  SELECT symbol, name, quantity, account
-  FROM ENTITY Holding
-  WHERE account = @401k OR account = @ira
-END
-
-QUERY YTDTransactions
-  SELECT Date, Type, Symbol, Quantity, Amount
-  FROM ROW Transactions_2024
-  WHERE Date >= 2024-01-01
-  ORDER BY Date DESC
-END
-
-QUERY TotalDividends
-  SELECT SUM(Amount)
-  FROM ROW Transactions_2024
-  WHERE Type = DIVIDEND
-END
-
-QUERY MonthlyAvgGain
-  SELECT AVG(GainLossPct)
-  FROM ROW MonthlyPerformance
-  WHERE GainLossPct > 0
-END
-
-QUERY AssetRebalanceNeeded
-  SELECT AssetType, Percentage, TargetPct, (Percentage - TargetPct) as Difference
-  FROM ROW AssetAllocation
-  WHERE (Percentage - TargetPct) > 2 OR (Percentage - TargetPct) < -2
-END
-
-QUERY TotalPortfolioValue
-  SELECT SUM(quantity * current_price) as total_value
-  FROM ENTITY Holding
-END
-
-## Portfolio Analysis
-
-The portfolio demonstrates a diversified investment strategy across multiple
-asset classes and accounts. Key observations:
-
-1. **Asset Allocation**: Currently slightly overweight in stocks (42.6% vs 40% target)
-   and underweight in bonds (6.3% vs 10% target).
-
-2. **Performance**: Year-to-date portfolio has grown 24.2% including contributions,
-   with strong performance from crypto holdings and technology stocks.
-
-3. **Risk Profile**: Predominantly medium-risk holdings with strategic high-risk
-   allocation in cryptocurrency (4.9% of portfolio).
-
-4. **Tax Optimization**: Holdings are distributed across tax-advantaged (401k, IRA)
-   and taxable accounts for optimal tax efficiency.
-
-5. **Rebalancing**: Portfolio may benefit from rebalancing to reduce tech sector
-   concentration and increase bond allocation to meet target.
-
-The alias system reduces token usage significantly when AI systems analyze this
-portfolio data, particularly for repeated references to account types, asset
-classes, and risk levels.
-
-The embedded AICQL queries enable quick analysis of holdings, gains/losses,
-sector exposure, and rebalancing needs without requiring external database
-systems or spreadsheet applications.
+QUERY:
+  id: q.alt.vs.fi
+  from.set: holdings-2025-q4
+  using.dict: dict.holdings.v1
+  select: seg,sum(wt)
+  where: seg like "Alternatives%" OR seg like "Fixed Income%"
+  group: seg
