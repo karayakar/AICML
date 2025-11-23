@@ -1,264 +1,152 @@
-# AI:CML Product Catalog Example
+PAGE:
+  id: catalog-aurora-footwear-2026
+  title: Aurora Footwear Spring 2026 Catalog
+  type: catalog
+  lang: en
+  owner: merchandising
 
-Welcome to our comprehensive product catalog. This document demonstrates
-the AI:CML format by organizing product information in a structured,
-queryable format while maintaining human readability.
+META:
+  name: season
+  value: Spring 2026
 
-## Dictionary Definitions
+META:
+  name: currency
+  value: USD
 
-The following dictionaries define aliases used throughout this document,
-reducing token usage and ensuring consistency.
+SECTION:
+  id: hero-overview
+  level: 1
+  importance: high
 
-DICT aliases
-  electronics: Electronic Devices and Accessories
-  peripherals: Computer Peripherals and Accessories
-  mechanical: Mechanical Switch Technology
-  wireless: Wireless Connectivity (Bluetooth/RF)
-  rgb: RGB Backlighting System
-  gaming: Gaming-Optimized Features
-  professional: Professional/Office Use
-END
+TITLE:
+  Hero Highlights
 
-DICT categories
-  kbd: Keyboards and Keypads
-  mouse: Pointing Devices and Mice
-  monitor: Display Devices and Monitors
-  audio: Audio Devices and Headsets
-  storage: Storage Devices and Drives
-END
+P:
+  Three flagships cover trail, city, and racing segments with recycled uppers, tuned plates,
+  and logistics-ready packaging. Pricing lands between $129 and $169 with carbon-neutral delivery in 32 markets.
 
-DICT manufacturers
-  logitech: Logitech International S.A.
-  corsair: Corsair Gaming Inc.
-  razer: Razer Inc.
-  samsung: Samsung Electronics
-  sony: Sony Corporation
-END
+MEDIA:
+  type: image
+  src: https://cdn.aurora-footwear.example/hero-spring-2026.jpg
+  alt: Trio of Aurora Footwear hero shoes for Spring 2026
 
-## Product Entities
+SECTION:
+  id: merchandising-notes
+  level: 1
+  order: 2
 
-Each product is defined as an ENTITY with comprehensive details.
+TITLE:
+  Merchandising Notes
 
-ENTITY Product_KB001
-  id: KB-PRO-001
-  name: Professional Mechanical Keyboard
-  manufacturer: @corsair
-  price: 149.99
-  currency: USD
-  category: @kbd
-  tags: @mechanical, @wireless, @rgb, @gaming
-  stock: 45
-  warehouse: WH-01
-  description: Premium mechanical keyboard with Cherry MX switches and wireless connectivity
-  weight_kg: 1.2
-  dimensions: 440x135x35mm
-  warranty_months: 24
-END
+LIST:
+  style: unordered
 
-ENTITY Product_KB002
-  id: KB-OFF-002
-  name: Wireless Office Keyboard
-  manufacturer: @logitech
-  price: 49.99
-  currency: USD
-  category: @kbd
-  tags: @wireless, @professional
-  stock: 150
-  warehouse: WH-01
-  description: Compact wireless keyboard for office productivity
-  weight_kg: 0.6
-  dimensions: 380x120x25mm
-  warranty_months: 12
-END
+ITEM:
+  Bundle Trail Scout + City Pulse for $299 to boost cross-terrain adoption.
 
-ENTITY Product_MS001
-  id: MS-GAM-001
-  name: Wireless Gaming Mouse
-  manufacturer: @razer
-  price: 79.99
-  currency: USD
-  category: @mouse
-  tags: @wireless, @gaming, @rgb
-  stock: 120
-  warehouse: WH-02
-  description: High-precision wireless gaming mouse with 20K DPI sensor
-  weight_kg: 0.095
-  dimensions: 125x65x43mm
-  warranty_months: 24
-END
+ITEM:
+  Highlight recycled lace kit in retail displays; attach QR for AICML spec sheet download.
 
-ENTITY Product_MS002
-  id: MS-OFF-002
-  name: Ergonomic Office Mouse
-  manufacturer: @logitech
-  price: 29.99
-  currency: USD
-  category: @mouse
-  tags: @wireless, @professional
-  stock: 200
-  warehouse: WH-02
-  description: Ergonomic wireless mouse designed for all-day comfort
-  weight_kg: 0.105
-  dimensions: 110x60x40mm
-  warranty_months: 12
-END
+ITEM:
+  Offer 15% preorder incentive for loyalty members before February 15.
 
-ENTITY Product_MN001
-  id: MN-4K-001
-  name: 4K Ultra HD Gaming Monitor
-  manufacturer: @samsung
-  price: 399.99
-  currency: USD
-  category: @monitor
-  tags: @gaming, @electronics
-  stock: 23
-  warehouse: WH-03
-  description: 27-inch 4K Ultra HD monitor with 144Hz refresh rate and HDR support
-  weight_kg: 5.8
-  dimensions: 614x365x183mm
-  warranty_months: 36
-END
+ENTITY:
+  id: shipping-policy
+  kind: policy
+  name: Carbon Neutral Shipping 2026
+  carrier.primary: Aurora Logistics Network
+  regions.enabled: US,CA,EU,UK,AU,NZ
+  delivery.window_days: 4-7
+  return.window_days: 45
+  restock.fee_pct: 0
 
-ENTITY Product_MN002
-  id: MN-OFF-002
-  name: Professional Office Monitor
-  manufacturer: @samsung
-  price: 249.99
-  currency: USD
-  category: @monitor
-  tags: @professional, @electronics
-  stock: 67
-  warehouse: WH-03
-  description: 24-inch Full HD IPS monitor for professional use
-  weight_kg: 4.2
-  dimensions: 537x323x180mm
-  warranty_months: 36
-END
+DICT:
+  id: dict.product.v2
+  kind: product
+  field.id: sku
+  field.name: display_name
+  field.seg: segment
+  field.price: price_usd
+  field.weight: weight_grams
+  field.stack: stack_mm
+  field.drop: drop_mm
+  field.material: upper_material
+  field.colors: colorways
+  field.release: launch_date
 
-ENTITY Product_AU001
-  id: AU-GAM-001
-  name: Gaming Headset Pro
-  manufacturer: @sony
-  price: 129.99
-  currency: USD
-  category: @audio
-  tags: @wireless, @gaming
-  stock: 88
-  warehouse: WH-02
-  description: Premium wireless gaming headset with 7.1 surround sound
-  weight_kg: 0.380
-  dimensions: 185x95x200mm
-  warranty_months: 24
-END
+SET:
+  id: products-spring-2026
+  dict: dict.product.v2
+  kind: footwear
 
-## Sales Data
+ROW:
+  id: AF-TRAIL-SCOUT
+  name: Trail Scout 2
+  seg: Trail Performance
+  price: 169.00
+  weight: 286
+  stack: 33
+  drop: 6
+  material: Recycled warp-knit mesh
+  colors: Ember/Graphite, Moss/Stone
+  release: 2026-03-05
 
-Historical sales data organized in tabular format.
+ROW:
+  id: AF-CITY-PULSE
+  name: City Pulse Knit
+  seg: Urban Daily Trainer
+  price: 139.00
+  weight: 248
+  stack: 30
+  drop: 4
+  material: Knit engineered mesh + algae foam insole
+  colors: Neon Slate, Coastal Fog
+  release: 2026-02-10
 
-ROW SalesData_Q4_2024
-  | ProductID | Month | UnitsSold | Revenue | Discount |
-  | KB-PRO-001 | October | 120 | 17998.80 | 0.00 |
-  | KB-PRO-001 | November | 145 | 20848.55 | 150.00 |
-  | KB-PRO-001 | December | 198 | 28198.02 | 500.00 |
-  | MS-GAM-001 | October | 200 | 15998.00 | 0.00 |
-  | MS-GAM-001 | November | 225 | 17547.75 | 450.00 |
-  | MS-GAM-001 | December | 310 | 23797.00 | 1000.00 |
-  | MN-4K-001 | October | 45 | 17999.55 | 0.00 |
-  | MN-4K-001 | November | 52 | 20479.48 | 320.00 |
-  | MN-4K-001 | December | 78 | 30119.22 | 1080.00 |
-END
+ROW:
+  id: AF-RACE-VOLT
+  name: Race Volt X
+  seg: Speed / Racing
+  price: 159.00
+  weight: 218
+  stack: 36
+  drop: 8
+  material: Mono-mesh + carbon plate hybrid
+  colors: Aurora Flash, Midnight Current
+  release: 2026-04-18
 
-ROW WarehouseInventory
-  | Warehouse | Location | TotalProducts | Capacity | UtilizationPct |
-  | WH-01 | New York, NY | 195 | 5000 | 3.9 |
-  | WH-02 | Los Angeles, CA | 408 | 7500 | 5.4 |
-  | WH-03 | Chicago, IL | 90 | 4000 | 2.3 |
-END
+ROW:
+  id: AF-RECOVER-EASE
+  name: Recover Ease Slide
+  seg: Recovery & Lifestyle
+  price: 89.00
+  weight: 190
+  stack: 28
+  drop: 4
+  material: Sugarcane EVA foam
+  colors: Sand Drift, Lagoon Tint
+  release: 2026-01-20
 
-## Product Collections
+ENTITY:
+  id: sustainability-metrics
+  kind: sustainability
+  recycled.content_pct: 52
+  packaging.recycled_pct: 85
+  emissions.offset_tons: 1_800
+  water.saved_liters: 2_100_000
+  verified.by: EarthTrack Labs
 
-Sets of unique values for filtering and categorization.
+QUERY:
+  id: q.premium-tier
+  from.set: products-spring-2026
+  using.dict: dict.product.v2
+  select: id,name,price,seg
+  where: price >= 150
+  sort: price desc
 
-SET AvailableColors
-  Black
-  White
-  Silver
-  Red
-  Blue
-  RGB
-END
-
-SET WarehouseLocations
-  WH-01
-  WH-02
-  WH-03
-END
-
-SET ProductTags
-  @mechanical
-  @wireless
-  @rgb
-  @gaming
-  @professional
-  @electronics
-END
-
-## Queries
-
-Pre-defined queries for common data retrieval patterns.
-
-QUERY HighValueProducts
-  SELECT name, price, stock, manufacturer
-  FROM ENTITY
-  WHERE price > 100 AND stock > 20
-  ORDER BY price DESC
-END
-
-QUERY LowStockAlert
-  SELECT name, stock, warehouse
-  FROM ENTITY
-  WHERE stock < 30
-  ORDER BY stock ASC
-END
-
-QUERY GamingProducts
-  SELECT name, price, category
-  FROM ENTITY
-  WHERE tags CONTAINS @gaming
-  ORDER BY category ASC
-END
-
-QUERY TotalRevenue_Q4
-  SELECT ProductID, SUM(Revenue)
-  FROM ROW SalesData_Q4_2024
-  GROUP BY ProductID
-  ORDER BY SUM(Revenue) DESC
-END
-
-QUERY AveragePrice_ByCategory
-  SELECT category, AVG(price)
-  FROM ENTITY
-  GROUP BY category
-END
-
-QUERY WirelessProducts
-  SELECT name, price, stock
-  FROM ENTITY
-  WHERE tags CONTAINS @wireless
-  ORDER BY price ASC
-END
-
-## Summary
-
-This catalog contains 7 unique products across 4 categories, maintained
-in 3 warehouse locations. The structured format allows AI systems to
-easily query and analyze the data while keeping the content human-readable.
-
-The use of aliases (prefixed with @) reduces token usage by defining
-common terms once in dictionaries and referencing them throughout the
-document. This is particularly valuable for AI processing where token
-efficiency is important.
-
-The AICQL queries demonstrate how structured questions can be embedded
-directly in the document, allowing AI systems to extract insights without
-external query interfaces.
+QUERY:
+  id: q.segment-share
+  from.set: products-spring-2026
+  using.dict: dict.product.v2
+  select: seg,count(id)
+  group: seg
