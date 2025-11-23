@@ -63,16 +63,16 @@ ENTITY:
 DICT:
   id: dict.product.v2
   kind: product
-  field.id: sku
-  field.name: display_name
-  field.seg: segment
-  field.price: price_usd
-  field.weight: weight_grams
-  field.stack: stack_mm
-  field.drop: drop_mm
-  field.material: upper_material
-  field.colors: colorways
-  field.release: launch_date
+  field.i: sku
+  field.n: display_name
+  field.g: segment
+  field.p: price_usd
+  field.w: weight_grams
+  field.st: stack_mm
+  field.d: drop_mm
+  field.m: upper_material
+  field.c: colorways
+  field.r: launch_date
 
 SET:
   id: products-spring-2026
@@ -80,52 +80,52 @@ SET:
   kind: footwear
 
 ROW:
-  id: AF-TRAIL-SCOUT
-  name: Trail Scout 2
-  seg: Trail Performance
-  price: 169.00
-  weight: 286
-  stack: 33
-  drop: 6
-  material: Recycled warp-knit mesh
-  colors: Ember/Graphite, Moss/Stone
-  release: 2026-03-05
+  i: AF-TRAIL-SCOUT
+  n: Trail Scout 2
+  g: Trail Performance
+  p: 169.00
+  w: 286
+  st: 33
+  d: 6
+  m: Recycled warp-knit mesh
+  c: Ember/Graphite, Moss/Stone
+  r: 2026-03-05
 
 ROW:
-  id: AF-CITY-PULSE
-  name: City Pulse Knit
-  seg: Urban Daily Trainer
-  price: 139.00
-  weight: 248
-  stack: 30
-  drop: 4
-  material: Knit engineered mesh + algae foam insole
-  colors: Neon Slate, Coastal Fog
-  release: 2026-02-10
+  i: AF-CITY-PULSE
+  n: City Pulse Knit
+  g: Urban Daily Trainer
+  p: 139.00
+  w: 248
+  st: 30
+  d: 4
+  m: Knit engineered mesh + algae foam insole
+  c: Neon Slate, Coastal Fog
+  r: 2026-02-10
 
 ROW:
-  id: AF-RACE-VOLT
-  name: Race Volt X
-  seg: Speed / Racing
-  price: 159.00
-  weight: 218
-  stack: 36
-  drop: 8
-  material: Mono-mesh + carbon plate hybrid
-  colors: Aurora Flash, Midnight Current
-  release: 2026-04-18
+  i: AF-RACE-VOLT
+  n: Race Volt X
+  g: Speed / Racing
+  p: 159.00
+  w: 218
+  st: 36
+  d: 8
+  m: Mono-mesh + carbon plate hybrid
+  c: Aurora Flash, Midnight Current
+  r: 2026-04-18
 
 ROW:
-  id: AF-RECOVER-EASE
-  name: Recover Ease Slide
-  seg: Recovery & Lifestyle
-  price: 89.00
-  weight: 190
-  stack: 28
-  drop: 4
-  material: Sugarcane EVA foam
-  colors: Sand Drift, Lagoon Tint
-  release: 2026-01-20
+  i: AF-RECOVER-EASE
+  n: Recover Ease Slide
+  g: Recovery & Lifestyle
+  p: 89.00
+  w: 190
+  st: 28
+  d: 4
+  m: Sugarcane EVA foam
+  c: Sand Drift, Lagoon Tint
+  r: 2026-01-20
 
 ENTITY:
   id: sustainability-metrics
@@ -140,13 +140,13 @@ QUERY:
   id: q.premium-tier
   from.set: products-spring-2026
   using.dict: dict.product.v2
-  select: id,name,price,seg
-  where: price >= 150
-  sort: price desc
+  select: i,n,p,g
+  where: p >= 150
+  sort: p desc
 
 QUERY:
   id: q.segment-share
   from.set: products-spring-2026
   using.dict: dict.product.v2
-  select: seg,count(id)
-  group: seg
+  select: g,count(i)
+  group: g
