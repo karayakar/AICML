@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI:CML Developer Appendix — JSON AST & Parser Patterns</title>
+    <meta name="description" content="Canonical JSON AST schema for AICML plus parser state machine sketches for JavaScript/React, Python, C#, Java, and other runtimes." />
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f9fafb;
+      --fg: #0f172a;
+      --accent: #2563eb;
+      --muted: #5f6472;
+      --border: #d4d8e2;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      line-height: 1.65;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+    }
+
+    header {
+      padding: 2.5rem 1.5rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      background: #fff;
+    }
+
+    header h1 {
+      margin: 0 0 0.4rem;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+    }
+
+    header p {
+      margin: 0;
+      max-width: 70ch;
+      color: var(--muted);
+    }
+
+    .header-links {
+      margin-top: 1rem;
+      display: inline-flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .header-links a {
+      text-decoration: none;
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-weight: 600;
+      background: rgba(37, 99, 235, 0.08);
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
+      gap: 2rem;
+      padding: 2.25rem 1.5rem 4rem;
+    }
+
+    nav {
+      position: sticky;
+      top: 1.5rem;
+      align-self: start;
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      background: #fff;
+    }
+
+    nav h2 {
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin: 0 0 0.5rem;
+    }
+
+    nav ol {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    nav li { margin-bottom: 0.4rem; }
+
+    nav a {
+      color: inherit;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    nav ul {
+      list-style: none;
+      margin: 0.35rem 0 0.5rem 1rem;
+      padding: 0;
+      border-left: 1px solid var(--border);
+    }
+
+    nav ul li {
+      margin: 0.25rem 0 0.25rem 0.75rem;
+      font-size: 0.95rem;
+    }
+
+    article section {
+      margin-bottom: 3rem;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.6rem;
+    }
+
+    article h2 { margin-top: 0; font-size: 1.6rem; }
+    article h3 { margin-top: 1.5rem; font-size: 1.2rem; }
+
+    pre, code {
+      font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+    }
+
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 1rem;
+      border-radius: 0.65rem;
+      overflow-x: auto;
+      line-height: 1.45;
+    }
+
+    ul { margin-top: 0.5rem; }
+
+    .note {
+      padding: 0.85rem 1rem;
+      border-left: 4px solid var(--accent);
+      background: rgba(37, 99, 235, 0.08);
+      margin: 1.25rem 0;
+    }
+
+    .social-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.12);
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .social-link svg {
+      width: 1rem;
+      height: 1rem;
+      fill: currentColor;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    @media (max-width: 960px) {
+      main { grid-template-columns: 1fr; }
+      nav { position: static; order: 2; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AI:CML Developer Appendix - LLX (Large-Language eXchange)</h1>
+    <p>
+      Canonical JSON AST definitions for AI:CML 1.0 plus shared parser patterns for JavaScript/React, Python, C#, Java, and
+      other runtimes. Treat this as the contract any ingestion pipeline should target, especially since AI:CML's DICT/SET
+      dictionaries lock in AI token savings by storing alias tables directly inside each document.
+    </p>
+    <div class="header-links">
+      <a href="spec.html">Main Spec</a>
+      <a href="index.html">Open Token Test Lab</a>
+    </div>
+  </header>
+
+  <main>
+    <nav aria-label="Table of contents">
+      <h2>Contents</h2>
+      <ol>
+        <li><a href="#overview">1. Overview</a></li>
+        <li>
+          <a href="#json-ast">2. Canonical JSON AST</a>
+          <ul>
+            <li><a href="#json-document">2.1 Document</a></li>
+            <li><a href="#json-page">2.2 Page &amp; meta</a></li>
+            <li><a href="#json-sections">2.3 Sections &amp; blocks</a></li>
+            <li><a href="#json-entities">2.4 Entities</a></li>
+            <li><a href="#json-dict">2.5 Dict / Set / Row</a></li>
+            <li><a href="#json-queries">2.6 Queries</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#parser">3. Parser state machine</a>
+          <ul>
+            <li><a href="#parser-token">3.1 Token model</a></li>
+            <li><a href="#parser-loop">3.2 State loop</a></li>
+            <li><a href="#parser-flush">3.3 Flush semantics</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#languages">4. Language skeletons</a>
+          <ul>
+            <li><a href="#js">4.1 JavaScript / React</a></li>
+            <li><a href="#python">4.2 Python</a></li>
+            <li><a href="#csharp">4.3 C#</a></li>
+            <li><a href="#java">4.4 Java</a></li>
+            <li><a href="#others">4.5 Other runtimes</a></li>
+          </ul>
+        </li>
+        <li><a href="#next">5. Next steps</a></li>
+      </ol>
+    </nav>
+
+    <article>
+      <section id="overview">
+        <h2>1. Overview</h2>
+        <p>
+          The plain-text AICML syntax is human-friendly, but production systems should consume a consistent JSON graph. The
+          structures below are the canonical representation—emit them from every parser, no matter the stack.
+        </p>
+        <div class="note">
+          Looking for the XML-era XSD/Relax NG? Fetch the previous revision of this appendix from source control. This edition
+          focuses on the AICML 1.0 block syntax → JSON pipeline and parser architecture.
+        </div>
+      </section>
+
+      <section id="json-ast">
+        <h2>2. Canonical JSON AST</h2>
+        <p>Interfaces are shown in TypeScript notation; mirror them as dataclasses, records, or POCOs in your language.</p>
+
+        <section id="json-document">
+          <h3>2.1 Top-level document</h3>
+          <pre><code>interface AicmlDocument {
+  page: Page;
+  meta: Meta[];
+  sections: Section[];
+  entities: Entity[];
+  dicts: Dict[];
+  sets: DataSet[];
+  queries: Query[];
+}</code></pre>
+        </section>
+
+        <section id="json-page">
+          <h3>2.2 Page &amp; meta</h3>
+          <pre><code>interface Page {
+  id: string;
+  lang?: string;
+  title?: string;
+  type?: string; // article | docs | landing | faq | ...
+}
+
+interface Meta {
+  name: string;
+  value: string;
+}</code></pre>
+        </section>
+
+        <section id="json-sections">
+          <h3>2.3 Sections &amp; blocks</h3>
+          <pre><code>interface Section {
+  id: string;
+  type?: string;
+  importance?: "high" | "normal" | "low";
+  level?: number;
+  order?: number;
+  parentId?: string | null;
+  sets?: string[];
+  entities?: string[];
+  blocks: SectionBlock[];
+}
+
+type SectionBlock =
+  | TitleBlock
+  | ParagraphBlock
+  | ListBlock
+  | NoteBlock
+  | ExampleBlock
+  | QaBlock
+  | CodeBlock
+  | MediaBlock;
+
+interface TitleBlock { kind: "title"; text: string; }
+interface ParagraphBlock { kind: "paragraph"; text: string; }
+
+interface ListBlock {
+  kind: "list";
+  style: "ordered" | "unordered";
+  items: ListItem[];
+}
+
+interface ListItem {
+  order?: number;
+  text: string;
+}
+
+interface NoteBlock {
+  kind: "note";
+  noteType: "info" | "warning" | "tip";
+  importance?: "high" | "normal" | "low";
+  blocks: ParagraphBlock[]; // extend with lists/code if needed
+}
+
+interface ExampleBlock {
+  kind: "example";
+  blocks: Array<ParagraphBlock | CodeBlock | ListBlock>;
+}
+
+interface QaBlock {
+  kind: "qa";
+  question: string;
+  answer: string | string[];
+}
+
+interface CodeBlock {
+  kind: "code";
+  lang?: string;
+  code: string;
+}
+
+interface MediaBlock {
+  kind: "media";
+  mediaType: "image" | "video" | "audio" | "diagram";
+  src: string;
+  alt?: string;
+  title?: string;
+}</code></pre>
+        </section>
+
+        <section id="json-entities">
+          <h3>2.4 Entities</h3>
+          <pre><code>interface Entity {
+  id: string;
+  kind: string; // product | book | event | ...
+  name?: string;
+  order?: number;
+  parentId?: string | null;
+  role?: string;
+  properties: Record<string, string>; // dotted semantic keys
+}</code></pre>
+        </section>
+
+        <section id="json-dict">
+          <h3>2.5 Dict / Set / Row</h3>
+          <pre><code>interface DictField {
+  alias: string; // pa
+  path: string;  // price.amount
+}
+
+interface Dict {
+  id: string;
+  kind?: string;
+  fields: DictField[];
+}
+
+interface DataRow {
+  values: Record<string, string>; // alias -> value
+}
+
+interface DataSet {
+  id: string;
+  dictId: string;
+  kind?: string;
+  description?: string;
+  rows: DataRow[];
+}</code></pre>
+        </section>
+
+        <section id="json-queries">
+          <h3>2.6 Queries</h3>
+          <pre><code>type SortDirection = "asc" | "desc";
+
+interface SortSpec {
+  field: string;
+  direction: SortDirection;
+}
+
+interface Query {
+  id: string;
+  fromSetId?: string;
+  fromEntityId?: string;
+  usingDictId?: string;
+  where?: string;
+  select?: string[];
+  sort?: SortSpec[];
+  limit?: number;
+}</code></pre>
+        </section>
+      </section>
+
+      <section id="parser">
+        <h2>3. Parser state machine</h2>
+
+        <section id="parser-token">
+          <h3>3.1 Token model</h3>
+          <ul>
+            <li>Headers: <code>^[A-Z]+:</code> (PAGE, SECTION, ROW, QUERY, ...).</li>
+            <li>Key/value lines: <code>key: value</code> inside a block.</li>
+            <li>Paragraph and code blocks buffer plain text until the next header.</li>
+            <li>Whitespace-only lines inside text blocks should be preserved for CODE, collapsed for P.</li>
+          </ul>
+        </section>
+
+        <section id="parser-loop">
+          <h3>3.2 State loop</h3>
+          <pre><code>state = {
+  currentBlock: null,
+  currentSection: null,
+  currentList: null,
+  currentDict: null,
+  currentSet: null,
+  currentRow: null,
+  currentQuery: null,
+  paragraphLines: [],
+  codeLang: null,
+  codeLines: []
+}
+
+for each line in file:
+  if matchesHeader(line):
+    flushCurrentBlock()
+    startBlock(headerName)
+  else:
+    appendToBlock(line)
+
+flushCurrentBlock() // handle final block</code></pre>
+        </section>
+
+        <section id="parser-flush">
+          <h3>3.3 Flush semantics &amp; helpers</h3>
+          <ul>
+            <li><strong>P:</strong> join <code>paragraphLines</code>, trim, push ParagraphBlock.</li>
+            <li><strong>CODE:</strong> join <code>codeLines</code> with <code>\n</code>, attach <code>codeLang</code>.</li>
+            <li><strong>LIST/ITEM:</strong> instantiate ListBlock when LIST starts; each ITEM appends immediately.</li>
+            <li><strong>NOTE/EXAMPLE/QA:</strong> maintain temporary objects just like SECTION; push when a new header begins.</li>
+            <li><strong>DICT/SET/ROW:</strong> DICT goes to <code>doc.dicts</code>; SET goes to <code>doc.sets</code>; ROWs append to <code>currentSet.rows</code>.</li>
+            <li><strong>QUERY:</strong> parse <code>select</code> into arrays (split commas) and <code>sort</code> into <code>SortSpec</code> tuples.</li>
+          </ul>
+        </section>
+      </section>
+
+      <section id="languages">
+        <h2>4. Language skeletons</h2>
+        <p>Each sample references the shared logic above; expand the model classes per Section 2.</p>
+
+        <section id="js">
+          <h3>4.1 JavaScript / React</h3>
+          <pre><code>const HEADER_RE = /^([A-Z]+):\s*$/;
+const KV_RE = /^\s*([a-zA-Z0-9_.]+):\s*(.*)$/;
+
+          export function parseAicml(text) {
+  const lines = text.split(/\r?\n/);
+  const doc = { page: { id: "" }, meta: [], sections: [], entities: [], dicts: [], sets: [], queries: [] };
+  let currentBlock = null;
+  let currentSection = null;
+  let paragraph = [];
+  let codeLang;
+  let codeLines = [];
+  // ...holders for list/note/example/dict/set/row/query/entity/meta
+
+  const flush = () => {
+    if (currentBlock === "P" && currentSection) {
+      const text = paragraph.join(" ").trim();
+      if (text) currentSection.blocks.push({ kind: "paragraph", text });
+      paragraph = [];
+    }
+    if (currentBlock === "CODE" && currentSection) {
+      currentSection.blocks.push({ kind: "code", lang: codeLang, code: codeLines.join("\n") });
+      codeLang = undefined;
+      codeLines = [];
+    }
+    if (currentBlock === "SECTION" && currentSection) {
+      doc.sections.push(currentSection);
+      currentSection = null;
+    }
+    // flush DICT, SET, ROW, QUERY, ENTITY, NOTE, EXAMPLE, QA as needed
+    currentBlock = null;
+  };
+
+  for (const rawLine of lines) {
+    const line = rawLine.trimEnd();
+    const header = line.match(HEADER_RE);
+    if (header) {
+      flush();
+      currentBlock = header[1];
+      if (currentBlock === "SECTION") currentSection = { id: "", blocks: [] };
+      if (currentBlock === "P") paragraph = [];
+      if (currentBlock === "CODE") { codeLang = undefined; codeLines = []; }
+      // initialize LIST, NOTE, EXAMPLE, QA, DICT, SET, ROW, QUERY, ENTITY, META etc.
+      continue;
+    }
+
+    const kv = line.match(KV_RE);
+    if (currentBlock === "PAGE" && kv) { doc.page[kv[1]] = kv[2]; continue; }
+    if (currentBlock === "SECTION" && kv && currentSection) {
+      currentSection[kv[1]] = isFinite(+kv[2]) ? Number(kv[2]) : kv[2];
+      continue;
+    }
+    if (currentBlock === "P") { paragraph.push(line.trim()); continue; }
+    if (currentBlock === "CODE") {
+      if (kv && kv[1] === "lang") codeLang = kv[2];
+      else codeLines.push(rawLine);
+      continue;
+    }
+    // handle META, LIST, ITEM, NOTE, ENTITY, DICT, SET, ROW, QUERY with similar guards
+  }
+
+  flush();
+  return doc;
+}
+
+// React usage: const ast = useMemo(() => parseAicml(raw), [raw]);</code></pre>
+        </section>
+
+        <section id="python">
+          <h3>4.2 Python</h3>
+          <pre><code>HEADER_RE = re.compile(r'^([A-Z]+):\s*$')
+KV_RE = re.compile(r'^\s*([a-zA-Z0-9_.]+):\s*(.*)$')
+
+@dataclass
+class Page:
+    id: str = ""
+    lang: str | None = None
+    title: str | None = None
+    type: str | None = None
+
+@dataclass
+class AicmlDocument:
+    page: Page
+    meta: list[Meta] = field(default_factory=list)
+    sections: list[Section] = field(default_factory=list)
+    entities: list[Entity] = field(default_factory=list)
+    dicts: list[Dict] = field(default_factory=list)
+    sets: list[DataSet] = field(default_factory=list)
+    queries: list[Query] = field(default_factory=list)
+
+
+def parse_aicml(text: str) -> AicmlDocument:
+  doc = AicmlDocument(page=Page())
+    current_block = None
+    current_section = None
+    paragraph: list[str] = []
+    code_lines: list[str] = []
+    code_lang: str | None = None
+    # initialize holders for dict/set/row/query/list/note/example/qa/meta/entity
+
+    def flush():
+        nonlocal current_block, paragraph, code_lines, code_lang, current_section
+        if current_block == "P" and current_section:
+            text = " ".join(paragraph).strip()
+            if text:
+                current_section.blocks.append(ParagraphBlock(kind="paragraph", text=text))
+            paragraph = []
+        if current_block == "CODE" and current_section:
+            current_section.blocks.append(CodeBlock(kind="code", lang=code_lang, code="\n".join(code_lines)))
+            code_lines, code_lang = [], None
+        if current_block == "SECTION" and current_section:
+            doc.sections.append(current_section)
+            current_section = None
+        # flush DICT/SET/ROW/QUERY/META/ENTITY/etc.
+        current_block = None
+
+    for raw in text.splitlines():
+        m_header = HEADER_RE.match(raw)
+        if m_header:
+            flush()
+            current_block = m_header.group(1)
+            if current_block == "SECTION":
+                current_section = Section(id="", blocks=[])
+            elif current_block == "P":
+                paragraph = []
+            elif current_block == "CODE":
+                code_lines, code_lang = [], None
+            # init other block objects
+            continue
+
+        m_kv = KV_RE.match(raw)
+        if current_block == "PAGE" and m_kv:
+            setattr(doc.page, m_kv.group(1), m_kv.group(2))
+            continue
+        if current_block == "SECTION" and current_section and m_kv:
+            setattr(current_section, m_kv.group(1).replace('.', '_'), coerce(m_kv.group(2)))
+            continue
+        if current_block == "P":
+            paragraph.append(raw.strip())
+            continue
+        if current_block == "CODE":
+            if m_kv and m_kv.group(1) == "lang":
+                code_lang = m_kv.group(2).strip()
+            else:
+                code_lines.append(raw)
+            continue
+        # handle remaining blocks here
+
+    flush()
+    return doc</code></pre>
+        </section>
+
+        <section id="csharp">
+          <h3>4.3 C#</h3>
+          <pre><code>public sealed class AicmlParser {
+  private static readonly Regex Header = new("^([A-Z]+):\\s*$", RegexOptions.Compiled);
+  private static readonly Regex Kv = new("^\\s*([a-zA-Z0-9_.]+):\\s*(.*)$", RegexOptions.Compiled);
+
+  public AicmlDocument Parse(string text) {
+    var doc = new AicmlDocument();
+    var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+
+    string currentBlock = null;
+    Section currentSection = null;
+    var paragraph = new List<string>();
+    var codeLines = new List<string>();
+    string codeLang = null;
+    // holders for dict/set/row/query/list/note/example/qa/meta/entity
+
+    void Flush() {
+      if (currentBlock == "P" && currentSection != null) {
+        var textValue = string.Join(" ", paragraph).Trim();
+        if (textValue.Length > 0)
+          currentSection.Blocks.Add(new ParagraphBlock { Kind = "paragraph", Text = textValue });
+        paragraph.Clear();
+      }
+      if (currentBlock == "CODE" && currentSection != null) {
+        currentSection.Blocks.Add(new CodeBlock { Kind = "code", Lang = codeLang, Code = string.Join("\n", codeLines) });
+        codeLines.Clear();
+        codeLang = null;
+      }
+      if (currentBlock == "SECTION" && currentSection != null) {
+        doc.Sections.Add(currentSection);
+        currentSection = null;
+      }
+      // flush DICT/SET/ROW/QUERY/META/ENTITY/etc.
+      currentBlock = null;
+    }
+
+    foreach (var raw in lines) {
+      var line = raw.TrimEnd();
+      var mHeader = Header.Match(line);
+      if (mHeader.Success) {
+        Flush();
+        currentBlock = mHeader.Groups[1].Value;
+        if (currentBlock == "SECTION") currentSection = new Section { Blocks = new List<SectionBlock>() };
+        else if (currentBlock == "P") paragraph.Clear();
+        else if (currentBlock == "CODE") { codeLines.Clear(); codeLang = null; }
+        // init other block objects
+        continue;
+      }
+
+      var kv = Kv.Match(line);
+      if (currentBlock == "PAGE" && kv.Success) {
+        doc.Page.Assign(kv.Groups[1].Value, kv.Groups[2].Value);
+        continue;
+      }
+      if (currentBlock == "SECTION" && currentSection != null && kv.Success) {
+        currentSection.Assign(kv.Groups[1].Value, kv.Groups[2].Value);
+        continue;
+      }
+      if (currentBlock == "P") { paragraph.Add(line.Trim()); continue; }
+      if (currentBlock == "CODE") {
+        if (kv.Success && kv.Groups[1].Value == "lang") codeLang = kv.Groups[2].Value;
+        else codeLines.Add(raw);
+        continue;
+      }
+      // mirror logic for other block types
+    }
+
+    Flush();
+    return doc;
+  }
+}</code></pre>
+        </section>
+
+        <section id="java">
+          <h3>4.4 Java</h3>
+          <pre><code>public final class AicmlParser {
+  private static final Pattern HEADER = Pattern.compile("^([A-Z]+):\\s*$");
+  private static final Pattern KV = Pattern.compile("^\\s*([a-zA-Z0-9_.]+):\\s*(.*)$");
+
+  public AicmlDocument parse(String text) {
+    AicmlDocument doc = new AicmlDocument();
+    String[] lines = text.split("\\r?\\n");
+    String currentBlock = null;
+    Section currentSection = null;
+    List<String> paragraph = new ArrayList<>();
+    List<String> codeLines = new ArrayList<>();
+    String codeLang = null;
+    // instantiate dict/set/row/query/list/note/example helpers
+
+    Runnable flush = () -> {
+      if ("P".equals(currentBlock) && currentSection != null) {
+        String textValue = String.join(" ", paragraph).trim();
+        if (!textValue.isEmpty()) currentSection.blocks.add(new ParagraphBlock("paragraph", textValue));
+        paragraph.clear();
+      }
+      if ("CODE".equals(currentBlock) && currentSection != null) {
+        currentSection.blocks.add(new CodeBlock("code", codeLang, String.join("\n", codeLines)));
+        codeLines.clear();
+        codeLang = null;
+      }
+      if ("SECTION".equals(currentBlock) && currentSection != null) {
+        doc.sections.add(currentSection);
+        currentSection = null;
+      }
+      // flush DICT/SET/ROW/QUERY/etc.
+      currentBlock = null;
+    };
+
+    for (String raw : lines) {
+      String line = raw.trimEnd();
+      Matcher header = HEADER.matcher(line);
+      if (header.matches()) {
+        flush.run();
+        currentBlock = header.group(1);
+        if ("SECTION".equals(currentBlock)) currentSection = new Section();
+        else if ("P".equals(currentBlock)) paragraph.clear();
+        else if ("CODE".equals(currentBlock)) { codeLines.clear(); codeLang = null; }
+        // init helpers for other block types
+        continue;
+      }
+
+      Matcher kv = KV.matcher(line);
+      if ("PAGE".equals(currentBlock) && kv.matches()) {
+        doc.page.assign(kv.group(1), kv.group(2));
+        continue;
+      }
+      if ("SECTION".equals(currentBlock) && currentSection != null && kv.matches()) {
+        currentSection.assign(kv.group(1), kv.group(2));
+        continue;
+      }
+      if ("P".equals(currentBlock)) { paragraph.add(line.trim()); continue; }
+      if ("CODE".equals(currentBlock)) {
+        if (kv.matches() && "lang".equals(kv.group(1))) codeLang = kv.group(2);
+        else codeLines.add(raw);
+        continue;
+      }
+      // handle META, LIST, ITEM, NOTE, ENTITY, DICT, SET, ROW, QUERY
+    }
+
+    flush.run();
+    return doc;
+  }
+}</code></pre>
+        </section>
+
+        <section id="others">
+          <h3>4.5 Other runtimes</h3>
+          <ul>
+            <li><strong>Go:</strong> structs + <code>bufio.Scanner</code>; reuse header/KV regex, keep streaming.</li>
+            <li><strong>Rust:</strong> enums/structs + <code>lines()</code>; prefer manual prefix checks to avoid regex overhead.</li>
+            <li><strong>Kotlin/Swift:</strong> sealed interfaces/data classes map cleanly to <code>SectionBlock</code> unions.</li>
+            <li>Whichever language you use, mirror the flush rules exactly so ROW/QUERY boundaries stay deterministic.</li>
+          </ul>
+        </section>
+      </section>
+
+      <section id="next">
+        <h2>5. Next steps</h2>
+        <ul>
+          <li>Publish shared AST typings/packages (npm, PyPI, NuGet, Maven).</li>
+          <li>Add schema validation (Zod, Pydantic, FluentValidation, Jakarta Bean Validation) right after parsing.</li>
+          <li>Implement an AICQL evaluator module that operates on the JSON AST for analytics and previews.</li>
+        </ul>
+        <p><a href="index.html">Back to the main AICML 1.0 specification</a></p>
+      </section>
+    </article>
+  </main>
+
+  <footer>
+    <span>&copy; 2025 AICML.org — Developer Appendix (JSON AST + Parser Patterns).</span>
+   
+  </footer>
+</body>
+</html>

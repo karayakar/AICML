@@ -1,0 +1,754 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AICML 1.0 — Layered AI Content Markup Language</title>
+  <meta name="description" content="Specification for AICML 1.0, a layered, plain-text markup for AI-ready documents, entities, compact datasets, and queries." />
+  <link rel="canonical" href="https://aicml.org/specs/1.0" />
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f8fbff;
+      --fg: #101321;
+      --accent: #3b82f6;
+      --muted: #5f6575;
+      --border: #d7dce7;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      line-height: 1.65;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+    }
+
+    header {
+		width:100%;
+      padding: 2.75rem 1.5rem 1rem;
+      border-bottom: 1px solid var(--border);
+      background: #fff;
+    }
+
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .vote-panel {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.4rem 0.9rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(59, 130, 246, 0.08);
+      font-weight: 600;
+    }
+
+    .vote-panel button {
+      border: none;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      padding: 0.35rem 1rem;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+      position: relative;
+      overflow: visible;
+    }
+
+    .vote-panel button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .sparkle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0.4rem;
+      height: 0.4rem;
+      background: #fde047;
+      clip-path: polygon(50% 0%, 65% 35%, 100% 40%, 72% 60%, 82% 100%, 50% 78%, 18% 100%, 28% 60%, 0% 40%, 35% 35%);
+      animation: sparkleBurst 750ms ease-out forwards;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    @keyframes sparkleBurst {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.3);
+      }
+      50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) translate(var(--spark-x, 0), var(--spark-y, 0)) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) translate(var(--spark-x, 0), var(--spark-y, 0)) scale(0.2);
+      }
+    }
+
+    .vote-count {
+      font-size: 1.15rem;
+      color: var(--fg);
+      min-width: 2ch;
+      text-align: right;
+    }
+
+    header h1 {
+      margin: 0 0 0.35rem;
+      font-size: clamp(1.9rem, 4vw, 2.9rem);
+    }
+
+    header p {
+      margin: 0;
+      max-width: 65ch;
+      color: var(--muted);
+    }
+
+    .header-links {
+      margin-top: 1rem;
+      display: inline-flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .header-links a {
+      text-decoration: none;
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-weight: 600;
+      background: rgba(59, 130, 246, 0.08);
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr);
+      gap: 2rem;
+      padding: 2.25rem 1.5rem 4rem;
+    }
+
+    nav {
+      position: sticky;
+      top: 1.5rem;
+      align-self: start;
+      border: 1px solid var(--border);
+      padding: 1rem;
+      border-radius: 0.75rem;
+      background: #fff;
+    }
+
+    nav h2 {
+      font-size: 0.95rem;
+      margin: 0 0 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    nav ol { list-style: none; padding: 0; margin: 0; }
+    nav li { margin-bottom: 0.45rem; }
+    nav a { text-decoration: none; color: inherit; font-weight: 600; }
+    nav li ul {
+      list-style: none;
+      margin: 0.25rem 0 0.5rem 1rem;
+      padding: 0;
+      border-left: 1px solid var(--border);
+    }
+    nav li ul li {
+      margin: 0.3rem 0 0.3rem 0.75rem;
+      font-size: 0.94rem;
+    }
+
+    article section {
+      margin-bottom: 3rem;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.6rem;
+    }
+
+    article h2 { margin-top: 0; font-size: 1.65rem; }
+    article h3 { margin-top: 1.75rem; font-size: 1.2rem; }
+
+    pre, code {
+      font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+    }
+
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 1rem;
+      border-radius: 0.6rem;
+      overflow-x: auto;
+      line-height: 1.4;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.65rem;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    .note {
+      padding: 0.85rem 1rem;
+      border-left: 4px solid var(--accent);
+      background: rgba(59, 130, 246, 0.08);
+      margin: 1.25rem 0;
+    }
+
+    .social-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      background: rgba(59, 130, 246, 0.12);
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .social-link svg {
+      width: 1rem;
+      height: 1rem;
+      fill: currentColor;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      background: rgba(16, 19, 33, 0.08);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem;
+      font-size: 0.92rem;
+      color: var(--muted);
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    @media (max-width: 960px) {
+      main { grid-template-columns: 1fr; }
+      nav { position: static; order: 2; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-bar">
+      <h1>AI:CML 1.0 — AI Content Markup Language</h1>
+	  <h3>AICML will also be known as LLX (Large-Language eXchange).</h3>
+      <div class="vote-panel" aria-live="polite">
+        <span class="vote-label">Votes</span>
+        <span class="vote-count" id="voteCount" role="status">0</span>
+        <button type="button" id="voteButton">Vote</button>
+      </div>
+    </div>
+    <p>
+        AI:CML (LLX) 1.0 is a plain-text, block-oriented format that treats a document like a tiny semantic
+      database: narrative sections for humans, ENTITY objects for rich records, DICT/SET/ROW blocks for
+      compact catalogs, and inline AICQL queries so AI systems can ask structured questions without
+      leaving the file. The built-in dictionary blocks keep AI token usage low by defining aliases once and
+      reusing them directly inside the document.
+    </p>
+    <div class="header-links">
+      <a href="schema.html">Developer Appendix</a>
+      <a href="index.html">Open Token Test Lab</a>
+    </div>
+  </header>
+
+  <main>
+    <nav aria-label="Table of contents">
+      <h2>Contents</h2>
+      <ol>
+        <li><a href="#overview">1. Mission & Layers</a></li>
+        <li><a href="#blocks">2. Block Reference</a></li>
+        <li>
+          <a href="#document-layer">3. Document layer</a>
+          <ul>
+            <li><a href="#page-meta">3.1 PAGE & META</a></li>
+            <li><a href="#sections">3.2 SECTION & text blocks</a></li>
+          </ul>
+        </li>
+        <li><a href="#entity-layer">4. Entity layer</a></li>
+        <li><a href="#compact-layer">5. Compact/tabular layer</a></li>
+        <li><a href="#query-layer">6. Query layer (AICQL)</a></li>
+        <li><a href="#html-coverage">7. HTML coverage & mapping</a></li>
+        <li><a href="#example">8. Full mini example</a></li>
+        <li><a href="#next-steps">9. Tooling & schemas</a></li>
+      </ol>
+    </nav>
+
+    <article>
+	 <section id="main">
+	 <h2>What Chat GPT says about AI:CML ?</h2>
+	 <img src="aicml-vs-json-comp.jpg" width="80%"/>
+	 </section>
+	  <section id="main">
+	 <h2>What Chat GPT says about AI:CML ?</h2>
+	 <img src="aicml-vs-toon.jpg" width="80%"/>
+	 </section>
+      <section id="overview">
+        <h2>1. Mission & Layers</h2>
+        <p>
+          AI:CML 1.0 keeps the “no presentation noise” spirit of the earliest drafts but remains layered enough to
+          describe entire content sites, structured catalogs, and the queries people run on top of them—all inside
+          one friendly, token-efficient text file. Blocks are written with UPPERCASE headers (e.g., <code>PAGE:</code>,
+          <code>ROW:</code>). Everything until the next header belongs to the current block.
+        </p>
+        <table>
+          <thead>
+            <tr><th>Layer</th><th>Purpose</th><th>Key blocks</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Document</td><td>Readable narrative equivalent to HTML articles, docs, FAQs.</td><td>PAGE, META, SECTION, TITLE, P, LIST, NOTE, QA, CODE, MEDIA</td></tr>
+            <tr><td>Entity</td><td>Rich single objects (product, book, event, persona).</td><td>ENTITY</td></tr>
+            <tr><td>Compact/tabular</td><td>Thousands of similar items with minimal tokens.</td><td>DICT, SET, ROW</td></tr>
+            <tr><td>Query</td><td>Inline analytics or API-like requests.</td><td>QUERY (AICQL)</td></tr>
+          </tbody>
+        </table>
+        <div class="note">
+          <strong>Design goals:</strong> 100% plain text, no XML/HTML/Markdown; dictionary-driven compression for large datasets; all
+          semantics explicit so LLMs or classic parsers can build a JSON AST and execute queries deterministically.
+        </div>
+      </section>
+
+      <section id="blocks">
+        <h2>2. Block Reference</h2>
+        <p>Block headers are uppercase followed by a colon. Recognised headers for 1.0:</p>
+        <div class="note">
+          PAGE, META, SECTION, TITLE, P, LIST, ITEM, NOTE, EXAMPLE, QA, Q, A, CODE, MEDIA, ENTITY, DICT, SET, ROW,
+          QUERY. Custom blocks may be added; consumers must ignore unknown blocks safely.
+        </div>
+        <p>Each block stores attributes as <code>key: value</code> lines. Multi-line bodies (e.g., paragraph text, code) continue until the next uppercase header.</p>
+      </section>
+
+      <section id="document-layer">
+        <h2>3. Document layer</h2>
+        <p>
+          Replace HTML scaffolding while keeping semantics intact. PAGE and SECTION metadata track IDs, language,
+          ordering, and importance so downstream agents can rebuild navigation, breadcrumbs, summaries, or localization matrices.
+        </p>
+
+        <section id="page-meta">
+          <h3>3.1 PAGE & META</h3>
+          <pre><code>PAGE:
+  id: shop-001
+  lang: en
+  title: Spring Catalog
+  type: landing
+
+META:
+  name: audience
+  value: consumer
+
+META:
+  name: region
+  value: global</code></pre>
+          <p>
+            PAGE is required once per file. META blocks are optional but unlimited. Use them for analytics, targeting, or build metadata.
+          </p>
+        </section>
+
+        <section id="sections">
+          <h3>3.2 SECTION & narrative blocks</h3>
+          <pre><code>SECTION:
+  id: catalog-intro
+  type: intro
+  importance: high
+  level: 1
+  order: 1
+
+TITLE:
+  Spring Catalog Overview
+
+P:
+  This catalog lists the running shoes shipping this season.
+  Narrative blocks mirror HTML semantics: TITLE → h*, P → paragraph,
+  LIST+ITEM → ul/ol, QA → FAQ, CODE → pre/code, MEDIA → img/video/audio.
+
+NOTE:
+  Pinned data set: products-running-2026</code></pre>
+          <p>
+            SECTION can reference structured data via <code>sets:</code>, <code>entities:</code>, or custom keys so readers jump directly from prose to data.
+          </p>
+        </section>
+      </section>
+
+      <section id="entity-layer">
+        <h2>4. Entity layer</h2>
+        <p>
+          ENTITY blocks describe a single rich object without aliases. They are perfect for hero products, a featured event, or any item where readability matters more than token count.
+        </p>
+        <pre><code>ENTITY:
+  id: product-hero-001
+  kind: product
+  name: Ultra Light Runner
+  category: footwear
+  category.sub: running
+  price.amount: 129.90
+  price.currency: USD
+  weight_kg: 0.72
+  shipping.weight_kg: 0.90
+  shipping.regions: US,CA,EU
+  image.main: https://cdn.example.com/p/hero001-main.png
+  image.thumbnail: https://cdn.example.com/p/hero001-thumb.png</code></pre>
+        <p>
+          Keys are dotted paths so downstream consumers can map them to JSON or graph structures losslessly.
+        </p>
+      </section>
+
+      <section id="compact-layer">
+        <h2>5. Compact/tabular layer</h2>
+        <p>
+          DICT + SET + ROW keep large catalogs small. DICT stores aliases, SET declares which dictionary applies, ROW instances carry only alias=value pairs. This is the “table mode” that scales to thousands of rows without repeating semantic text.</p>
+
+        <pre><code>DICT:
+  id: dict.product.v1
+  kind: product
+  field.i: entity.id
+  field.n: entity.name
+  field.c: category
+  field.sc: category.sub
+  field.pa: price.amount
+  field.pc: price.currency
+  field.sz: size.available
+  field.cl: color.options
+  field.w: weight_kg
+  field.sw: shipping.weight_kg
+  field.sr: shipping.regions
+
+SET:
+  id: products-running-2026
+  dict: dict.product.v1
+  kind: product
+  description: Running shoes for Spring 2026
+
+ROW:
+  i: prod-run-1001
+  n: Road Runner Lite
+  c: footwear
+  sc: running
+  pa: 89.90
+  pc: USD
+  sz: 40,41,42,43,44
+  cl: black,blue
+  w: 0.75
+  sw: 0.95
+  sr: US,CA,EU</code></pre>
+        <p>
+          Dict aliases are short (1–3 characters) so the ROW body is dense yet self-describing once the DICT is parsed.
+        </p>
+      </section>
+
+      <section id="query-layer">
+        <h2>6. Query layer (AICQL)</h2>
+        <p>
+          QUERY blocks provide embedded analytics. They reference ENTITY IDs or SET IDs, optionally specify a DICT, and expose simple line-based clauses reminiscent of SQL. Tools can evaluate these against the parsed AST to generate answers on the fly.</p>
+
+        <pre><code>QUERY:
+  id: q.products.over100
+  from.set: products-running-2026
+  using.dict: dict.product.v1
+  where: pa > 100 and pc = "USD"
+  select: i,n,pa,pc,sc
+  sort: pa desc
+  limit: 5</code></pre>
+        <p>
+          Clause summary: <code>from.set</code> or <code>from.entity</code>; optional <code>using.dict</code>; <code>where</code> with lightweight boolean expressions; <code>select</code> comma list; optional <code>sort</code> and <code>limit</code>.
+        </p>
+      </section>
+
+      <section id="html-coverage">
+        <h2>7. HTML coverage & mapping</h2>
+        <p>
+          Every core HTML content element maps directly to an AICML block. Because blocks are agnostic to layout, the mapping is one-to-many friendly and survives aggressive extraction pipelines.</p>
+            
+        <table>
+          <thead>
+            <tr><th>HTML element(s)</th><th>AICML block</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>html/head/body meta tags</td><td>PAGE, META</td><td>PAGE captures document-level attributes; META mirrors <code>&lt;meta&gt;</code> tags.</td></tr>
+            <tr><td>h1–h6, section headings</td><td>SECTION + TITLE</td><td><code>level</code> attribute ensures hierarchy.</td></tr>
+            <tr><td>p, span, div (textual)</td><td>P</td><td>Multi-line friendly; inline emphasis may use lightweight markup if needed.</td></tr>
+            <tr><td>ul/ol/li, dl/dt/dd</td><td>LIST + ITEM</td><td><code>LIST</code> can express bulleted or numbered; description lists map to ITEM with nested keys.</td></tr>
+            <tr><td>blockquote, aside</td><td>NOTE or EXAMPLE</td><td>Use <code>type: info|tip|warning</code> for semantic hints.</td></tr>
+            <tr><td>pre/code</td><td>CODE</td><td>Language captured via <code>lang:</code>.</td></tr>
+            <tr><td>figure/img/video/audio</td><td>MEDIA</td><td>Attributes: <code>type</code>, <code>src</code>, optional <code>alt</code>/<code>title</code>.</td></tr>
+            <tr><td>faq accordions, details/summary</td><td>QA + Q + A</td><td>Supports multiple answers per question.</td></tr>
+            <tr><td>data tables, cards, repeated components</td><td>ENTITY or DICT+SET+ROW</td><td>ENTITY for small sets; DICT/SET for thousands of records.</td></tr>
+          </tbody>
+        </table>
+        <p>
+          This mapping ensures “support for all HTML elements” relevant to semantic content. Presentation-only tags (layout divs, CSS classes) are intentionally ignored to keep the signal clean.
+        </p>
+      </section>
+
+      <section id="example">
+        <h2>8. Full mini example</h2>
+        <pre><code>PAGE:
+  id: shop-001
+  lang: en
+  title: Spring Running Catalog 2026
+  type: landing
+
+META:
+  name: audience
+  value: consumer
+
+SECTION:
+  id: intro
+  type: intro
+  importance: high
+  level: 1
+  order: 1
+
+TITLE:
+  Spring Running Collection
+
+P:
+  This catalog lists our running shoes for the spring season.
+  Data is stored in a compact format for efficient processing.
+
+SECTION:
+  id: running-products
+  type: concept
+  importance: high
+  level: 1
+  order: 2
+  sets: products-running-2026
+
+TITLE:
+  Running Shoes
+
+P:
+  The following data set contains all running shoe models, including
+  prices, sizes, colors, and shipping regions.
+
+DICT:
+  id: dict.product.v1
+  kind: product
+  field.i: entity.id
+  field.n: entity.name
+  field.c: category
+  field.sc: category.sub
+  field.pa: price.amount
+  field.pc: price.currency
+  field.sz: size.available
+  field.cl: color.options
+  field.w: weight_kg
+  field.sw: shipping.weight_kg
+  field.sr: shipping.regions
+
+SET:
+  id: products-running-2026
+  dict: dict.product.v1
+  kind: product
+  description: Running shoes for Spring 2026
+
+ROW:
+  i: prod-run-1001
+  n: Road Runner Lite
+  c: footwear
+  sc: running
+  pa: 89.90
+  pc: USD
+  sz: 40,41,42,43,44
+  cl: black,blue
+  w: 0.75
+  sw: 0.95
+  sr: US,CA,EU
+
+ROW:
+  i: prod-run-1002
+  n: City Sprint
+  c: footwear
+  sc: running
+  pa: 79.00
+  pc: USD
+  sz: 39,40,41,42,43
+  cl: gray,white
+  w: 0.72
+  sw: 0.92
+  sr: US,EU
+
+ROW:
+  i: prod-run-1003
+  n: Trail Climber Pro
+  c: footwear
+  sc: trail
+  pa: 115.50
+  pc: USD
+  sz: 41,42,43,44,45
+  cl: green,black
+  w: 0.85
+  sw: 1.05
+  sr: US,CA
+
+QUERY:
+  id: q.running.over100
+  from.set: products-running-2026
+  using.dict: dict.product.v1
+  where: pa > 100 and pc = "USD"
+  select: i,n,pa,pc,sc
+  sort: pa desc
+  limit: 5</code></pre>
+      </section>
+
+      <section id="next-steps">
+        <h2>9. Tooling & schemas</h2>
+        <p>
+          AICML 1.0 is the canonical plain-text format going forward. Legacy XML-based AICML deployments remain available for
+          archival needs; consult the developer appendix for the JSON AST and parser patterns that power modern pipelines.
+        </p>
+        <p>
+          👉 Developer appendix: <a href="schema.html">JSON AST + Parser Patterns</a>
+        </p>
+        <div class="note">
+          Next ideas:
+          <ul>
+            <li>Publish reference parser packages (npm, PyPI, NuGet, Maven) built on the shared AST.</li>
+            <li>Deliver HTML → AICML 1.0 extraction recipes for common CMS stacks.</li>
+             
+            <li>Ship an AICQL evaluator + playground so embedded queries can run in CI or docs sites.</li>
+          </ul>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <footer>
+    <span>&copy; 2025 AICML.org — AI Content Markup Language 1.0 Draft.</span>
+    
+  </footer>
+  <script>
+    (() => {
+      const voteCountEl = document.getElementById("voteCount");
+      const voteButton = document.getElementById("voteButton");
+      if (!voteCountEl || !voteButton) {
+        return;
+      }
+
+      const endpoint = "/api/votes";
+      const storageKey = "aicml.vote.submitted";
+      const formatter = new Intl.NumberFormat(navigator.language || "en-US");
+
+      const hasLocalVote = () => window.localStorage?.getItem(storageKey) === "1";
+      const markLocalVote = () => {
+        try {
+          window.localStorage?.setItem(storageKey, "1");
+        } catch (_) {
+          // Ignore storage errors; button will already be disabled.
+        }
+      };
+
+      function setCount(value) {
+        const numeric = Number.isFinite(value) ? value : Number(value) || 0;
+        voteCountEl.textContent = formatter.format(Math.max(0, Math.round(numeric)));
+      }
+
+      function lockButton() {
+        voteButton.disabled = true;
+        voteButton.textContent = "Voted";
+      }
+
+      function spawnStars(target) {
+        const sparkles = 8;
+        for (let i = 0; i < sparkles; i += 1) {
+          const star = document.createElement("span");
+          star.className = "sparkle";
+          const angle = (Math.PI * 2 * i) / sparkles + Math.random() * 0.6;
+          const distance = 16 + Math.random() * 20;
+          const offsetX = Math.cos(angle) * distance;
+          const offsetY = Math.sin(angle) * distance;
+          star.style.setProperty("--spark-x", `${offsetX}px`);
+          star.style.setProperty("--spark-y", `${offsetY}px`);
+          star.style.animationDelay = `${i * 30}ms`;
+          target.appendChild(star);
+          setTimeout(() => star.remove(), 800);
+        }
+      }
+
+      if (hasLocalVote()) {
+        lockButton();
+      }
+
+      async function refreshCount() {
+        try {
+          const response = await fetch(endpoint, { cache: "no-store" });
+          if (!response.ok) {
+            throw new Error("Vote fetch failed");
+          }
+          const data = await response.json();
+          setCount(data.count ?? 0);
+        } catch (error) {
+          console.warn("Unable to load vote count", error);
+        }
+      }
+
+      async function submitVote() {
+        if (hasLocalVote()) {
+          return;
+        }
+
+        const originalLabel = voteButton.textContent;
+        voteButton.disabled = true;
+        voteButton.textContent = "Voting...";
+        try {
+          const response = await fetch(endpoint, { method: "POST" });
+          if (!response.ok) {
+            throw new Error("Vote failed");
+          }
+          const data = await response.json();
+          setCount(data.count ?? 0);
+          markLocalVote();
+          lockButton();
+          spawnStars(voteButton);
+        } catch (error) {
+          alert("Vote failed. Lütfen tekrar deneyin.");
+          console.warn("Vote error", error);
+          voteButton.disabled = false;
+          voteButton.textContent = originalLabel;
+        }
+      }
+
+      voteButton.addEventListener("click", submitVote);
+      refreshCount();
+    })();
+  </script>
+</body>
+</html>
