@@ -1,546 +1,198 @@
-Contents
---------
+# AICML Language Usage Guide
 
-1.  [1\. Overview](#overview)
-2.  [2\. Canonical JSON AST](#json-ast)
-    *   [2.1 Document](#json-document)
-    *   [2.2 Page & meta](#json-page)
-    *   [2.3 Sections & blocks](#json-sections)
-    *   [2.4 Entities](#json-entities)
-    *   [2.5 Dict / Set / Row](#json-dict)
-    *   [2.6 Queries](#json-queries)
-3.  [3\. Parser state machine](#parser)
-    *   [3.1 Token model](#parser-token)
-    *   [3.2 State loop](#parser-loop)
-    *   [3.3 Flush semantics](#parser-flush)
-4.  [4\. Language skeletons](#languages)
-    *   [4.1 JavaScript / React](#js)
-    *   [4.2 Python](#python)
-    *   [4.3 C#](#csharp)
-    *   [4.4 Java](#java)
-    *   [4.5 Other runtimes](#others)
-5.  [5\. Next steps](#next)
+This guide explains how to write, read, and extend documents expressed in AICML (AI Content Markup Language)—a block-based, plain-text syntax designed for AI-first content pipelines.
 
-1\. Overview
-------------
+## 1. Mental Model
 
-The plain-text AICML syntax is human-friendly, but production systems should consume a consistent JSON graph. The structures below are the canonical representation—emit them from every parser, no matter the stack.
+- **Plain text, structured meaning**: Every semantic unit is a block identified by an uppercase header (`PAGE`, `SECTION`, `ROW`, etc.). There is no punctuation beyond colons and indentation, so files stay diff-friendly.
+- **Deterministic parsing**: Consumers scan line-by-line, switching context whenever they encounter a new uppercase header ending with `:`.
+- **Layered design**: Narrative blocks coexist with entity records, compact datasets, and embedded analytic queries in one file.
 
-Looking for the XML-era XSD/Relax NG? Fetch the previous revision of this appendix from source control. This edition focuses on the AICML 1.0 block syntax → JSON pipeline and parser architecture.
+## 2. Block Basics
 
-2\. Canonical JSON AST
-----------------------
+| Block | Purpose | Key Fields |
+| --- | --- | --- |
+| `PAGE` | Declares the document. | `id`, `title`, `lang`, `type`, `owner`, custom metadata. |
+| `META` | Arbitrary key/value metadata. | `name`, `value`. |
+| `SECTION` | Groups narrative content. | `id`, `level`, `importance`, `entities`, `sets`. |
+| Narrative (`TITLE`, `P`, `LIST`, `ITEM`, `NOTE`, `QA`, `CODE`, `MEDIA`) | Express prose without HTML. | `TITLE` holds one line, `P` can span multiple sentences, etc. |
+| `ENTITY` | Rich object with dotted attributes. | `kind`, `id`, and domain-specific keys (`price.amount`, `advisor.primary`). |
+| `DICT` | Defines short aliases for tabular data. | `field.<alias>: <full_path_or_label>`. |
+| `SET` | Binds a DICT to a dataset. | `id`, `dict`, `kind`, optional descriptors. |
+| `ROW` | Instance data that uses DICT aliases. | `alias: value` pairs only. |
+| `QUERY` | Embedded analytics / AICQL. | `from.set`, `using.dict`, `select`, `where`, `group`, `sort`, `limit`. |
 
-Interfaces are shown in TypeScript notation; mirror them as dataclasses, records, or POCOs in your language.
+### Syntax rules
 
-### 2.1 Top-level document
+1. **Headers**: Uppercase word + colon, e.g., `SECTION:`. No inline text on the header line.
+2. **Fields**: Indent two spaces (convention) and write `key: value`. Keys are case-sensitive.
+3. **Bodies**: For `P`, `CODE`, or other text blocks, everything after the initial field lines belongs to that block until the next uppercase header.
+4. **Blank lines**: Optional but recommended between blocks for readability; parsers ignore consecutive blank lines.
 
-    interface AicmlDocument {
-      page: Page;
-      meta: Meta[];
-      sections: Section[];
-      entities: Entity[];
-      dicts: Dict[];
-      sets: DataSet[];
-      queries: Query[];
-    }
+## 3. Writing Narrative Layers
 
-### 2.2 Page & meta
+1. Start with a `PAGE` block and at least one `META` describing context.
+2. Create `SECTION` blocks for each major topic. Optional attributes:
+    - `level`: heading depth (1 = top-level).
+    - `importance`: `high`, `medium`, `low`, or numeric weight.
+    - `entities` / `sets`: comma-separated references that tie structured data to the section.
+3. Add textual blocks under each section:
+    ```
+    SECTION:
+       id: overview
+       level: 1
 
-    interface Page {
-      id: string;
-      lang?: string;
-      title?: string;
-      type?: string; // article | docs | landing | faq | ...
-    }
-    
-    interface Meta {
-      name: string;
-      value: string;
-    }
+    TITLE:
+       Product Overview
 
-### 2.3 Sections & blocks
+    P:
+       This release introduces ...
+    ```
+4. Use `LIST` + `ITEM` for bullet summaries, `NOTE` for callouts, `QA` for FAQ-style prompts, and `CODE`/`MEDIA` when embedding snippets or media metadata.
 
-    interface Section {
-      id: string;
-      type?: string;
-      importance?: "high" | "normal" | "low";
-      level?: number;
-      order?: number;
-      parentId?: string | null;
-      sets?: string[];
-      entities?: string[];
-      blocks: SectionBlock[];
-    }
-    
-    type SectionBlock =
-      | TitleBlock
-      | ParagraphBlock
-      | ListBlock
-      | NoteBlock
-      | ExampleBlock
-      | QaBlock
-      | CodeBlock
-      | MediaBlock;
-    
-    interface TitleBlock { kind: "title"; text: string; }
-    interface ParagraphBlock { kind: "paragraph"; text: string; }
-    
-    interface ListBlock {
-      kind: "list";
-      style: "ordered" | "unordered";
-      items: ListItem[];
-    }
-    
-    interface ListItem {
-      order?: number;
-      text: string;
-    }
-    
-    interface NoteBlock {
-      kind: "note";
-      noteType: "info" | "warning" | "tip";
-      importance?: "high" | "normal" | "low";
-      blocks: ParagraphBlock[]; // extend with lists/code if needed
-    }
-    
-    interface ExampleBlock {
-      kind: "example";
-      blocks: Array;
-    }
-    
-    interface QaBlock {
-      kind: "qa";
-      question: string;
-      answer: string | string[];
-    }
-    
-    interface CodeBlock {
-      kind: "code";
-      lang?: string;
-      code: string;
-    }
-    
-    interface MediaBlock {
-      kind: "media";
-      mediaType: "image" | "video" | "audio" | "diagram";
-      src: string;
-      alt?: string;
-      title?: string;
-    }
+## 4. Entities & Dictionaries
 
-### 2.4 Entities
+### ENTITY
 
-    interface Entity {
-      id: string;
-      kind: string; // product | book | event | ...
-      name?: string;
-      order?: number;
-      parentId?: string | null;
-      role?: string;
-      properties: Record; // dotted semantic keys
-    }
+- Ideal for detailed records (products, patients, policies).
+- Use dotted keys to express hierarchies: `price.amount`, `advisor.primary.email`.
+- Example:
+   ```
+   ENTITY:
+      id: client-profile
+      kind: investor
+      name: Aurora Chen Family Trust
+      risk.score: 54
+      advisor.primary: Devon Ortiz
+   ```
 
-### 2.5 Dict / Set / Row
+### DICT + SET + ROW
 
-    interface DictField {
-      alias: string; // pa
-      path: string;  // price.amount
-    }
-    
-    interface Dict {
-      id: string;
-      kind?: string;
-      fields: DictField[];
-    }
-    
-    interface DataRow {
-      values: Record; // alias -> value
-    }
-    
-    interface DataSet {
-      id: string;
-      dictId: string;
-      kind?: string;
-      description?: string;
-      rows: DataRow[];
-    }
+1. **DICT** creates a shared vocabulary of aliases:
+    ```
+    DICT:
+       id: dict.product.v1
+       kind: product
+       field.i: sku
+       field.n: display_name
+       field.p: price_usd
+    ```
+2. **SET** references the dictionary:
+    ```
+    SET:
+       id: spring-lineup
+       dict: dict.product.v1
+       kind: footwear
+    ```
+3. **ROW** instances only use the aliases:
+    ```
+    ROW:
+       i: AF-RACE-VOLT
+       n: Race Volt X
+       p: 159.00
+    ```
 
-### 2.6 Queries
+> **Why aliases?** Rows stay compact, saving tokens and making large tables easy to diff. Parsers expand each alias via the DICT definition.
 
-    type SortDirection = "asc" | "desc";
-    
-    interface SortSpec {
-      field: string;
-      direction: SortDirection;
-    }
-    
-    interface Query {
-      id: string;
-      fromSetId?: string;
-      fromEntityId?: string;
-      usingDictId?: string;
-      where?: string;
-      select?: string[];
-      sort?: SortSpec[];
-      limit?: number;
-    }
+### Alias guidelines
 
-3\. Parser state machine
-------------------------
+- Keep aliases 1–3 characters; avoid spaces or punctuation.
+- Make them mnemonic when possible (`i` = id, `p` = price, `st` = stack height).
+- Do not reuse the same alias twice within one DICT.
 
-### 3.1 Token model
+## 5. Queries (AICQL)
 
-*   Headers: `^[A-Z]+:` (PAGE, SECTION, ROW, QUERY, ...).
-*   Key/value lines: `key: value` inside a block.
-*   Paragraph and code blocks buffer plain text until the next header.
-*   Whitespace-only lines inside text blocks should be preserved for CODE, collapsed for P.
+`QUERY` blocks embed lightweight analytics:
 
-### 3.2 State loop
+```
+QUERY:
+   id: q.top.performers
+   from.set: spring-lineup
+   using.dict: dict.product.v1
+   select: i,n,p
+   where: p >= 150
+   sort: p desc
+   limit: 5
+```
 
-    state = {
-      currentBlock: null,
-      currentSection: null,
-      currentList: null,
-      currentDict: null,
-      currentSet: null,
-      currentRow: null,
-      currentQuery: null,
-      paragraphLines: [],
-      codeLang: null,
-      codeLines: []
-    }
-    
-    for each line in file:
-      if matchesHeader(line):
-        flushCurrentBlock()
-        startBlock(headerName)
-      else:
-        appendToBlock(line)
-    
-    flushCurrentBlock() // handle final block
+- **from.set** must match a `SET` id.
+- **using.dict** is optional when the set already points to a dict, but including it increases clarity.
+- **select** accepts comma-separated aliases or aggregate expressions (`sum(p)`).
+- **where/group/sort/limit** mirror SQL semantics. Strings should be quoted.
 
-### 3.3 Flush semantics & helpers
+## 6. Conventions & Best Practices
 
-*   **P:** join `paragraphLines`, trim, push ParagraphBlock.
-*   **CODE:** join `codeLines` with `\n`, attach `codeLang`.
-*   **LIST/ITEM:** instantiate ListBlock when LIST starts; each ITEM appends immediately.
-*   **NOTE/EXAMPLE/QA:** maintain temporary objects just like SECTION; push when a new header begins.
-*   **DICT/SET/ROW:** DICT goes to `doc.dicts`; SET goes to `doc.sets`; ROWs append to `currentSet.rows`.
-*   **QUERY:** parse `select` into arrays (split commas) and `sort` into `SortSpec` tuples.
+### Identification
+- Use stable, lowercase/hyphen IDs for PAGE/SECTION/ENTITY/SET names (`products-2026`, `client-profile`).
+- Reference IDs literally; the language is case-sensitive.
 
-4\. Language skeletons
-----------------------
+### Whitespace
+- Two-space indentation is conventional but not mandated; be consistent.
+- Avoid tab characters—mixing tabs/spaces complicates diffing.
 
-Each sample references the shared logic above; expand the model classes per Section 2.
+### Comments
+- AICML intentionally avoids inline comments. Store notes in `NOTE` blocks or `META` entries to keep parsers simple.
 
-### 4.1 JavaScript / React
+### Versioning
+- Track schema evolution with `META` keys (`schema.version`, `generated.on`).
+- When changing a DICT alias, rename it in the DICT **and** update every ROW/QUERY referencing it.
 
-    const HEADER_RE = /^([A-Z]+):\s*$/;
-    const KV_RE = /^\s*([a-zA-Z0-9_.]+):\s*(.*)$/;
-    
-              export function parseAicml(text) {
-      const lines = text.split(/\r?\n/);
-      const doc = { page: { id: "" }, meta: [], sections: [], entities: [], dicts: [], sets: [], queries: [] };
-      let currentBlock = null;
-      let currentSection = null;
-      let paragraph = [];
-      let codeLang;
-      let codeLines = [];
-      // ...holders for list/note/example/dict/set/row/query/entity/meta
-    
-      const flush = () => {
-        if (currentBlock === "P" && currentSection) {
-          const text = paragraph.join(" ").trim();
-          if (text) currentSection.blocks.push({ kind: "paragraph", text });
-          paragraph = [];
-        }
-        if (currentBlock === "CODE" && currentSection) {
-          currentSection.blocks.push({ kind: "code", lang: codeLang, code: codeLines.join("\n") });
-          codeLang = undefined;
-          codeLines = [];
-        }
-        if (currentBlock === "SECTION" && currentSection) {
-          doc.sections.push(currentSection);
-          currentSection = null;
-        }
-        // flush DICT, SET, ROW, QUERY, ENTITY, NOTE, EXAMPLE, QA as needed
-        currentBlock = null;
-      };
-    
-      for (const rawLine of lines) {
-        const line = rawLine.trimEnd();
-        const header = line.match(HEADER_RE);
-        if (header) {
-          flush();
-          currentBlock = header[1];
-          if (currentBlock === "SECTION") currentSection = { id: "", blocks: [] };
-          if (currentBlock === "P") paragraph = [];
-          if (currentBlock === "CODE") { codeLang = undefined; codeLines = []; }
-          // initialize LIST, NOTE, EXAMPLE, QA, DICT, SET, ROW, QUERY, ENTITY, META etc.
-          continue;
-        }
-    
-        const kv = line.match(KV_RE);
-        if (currentBlock === "PAGE" && kv) { doc.page[kv[1]] = kv[2]; continue; }
-        if (currentBlock === "SECTION" && kv && currentSection) {
-          currentSection[kv[1]] = isFinite(+kv[2]) ? Number(kv[2]) : kv[2];
-          continue;
-        }
-        if (currentBlock === "P") { paragraph.push(line.trim()); continue; }
-        if (currentBlock === "CODE") {
-          if (kv && kv[1] === "lang") codeLang = kv[2];
-          else codeLines.push(rawLine);
-          continue;
-        }
-        // handle META, LIST, ITEM, NOTE, ENTITY, DICT, SET, ROW, QUERY with similar guards
-      }
-    
-      flush();
-      return doc;
-    }
-    
-    // React usage: const ast = useMemo(() => parseAicml(raw), [raw]);
+## 7. Validation & Tooling Tips
 
-### 4.2 Python
+- **Parser smoke tests**: run your favorite parser or the web-based token lab to ensure each block converts into the expected AST.
+- **Diffing**: Because files are plain text, Git diffs remain readable. Group related changes (e.g., update DICT + ROWS together).
+- **Token planning**: Use the token lab or scripts with `js-tiktoken`/OpenAI encoders to estimate savings versus raw HTML or JSON.
+- **Static analysis**: Simple linters can check for missing `dict` references, unused aliases, or duplicate IDs by scanning headers.
 
-    HEADER_RE = re.compile(r'^([A-Z]+):\s*$')
-    KV_RE = re.compile(r'^\s*([a-zA-Z0-9_.]+):\s*(.*)$')
-    
-    @dataclass
-    class Page:
-        id: str = ""
-        lang: str | None = None
-        title: str | None = None
-        type: str | None = None
-    
-    @dataclass
-    class AicmlDocument:
-        page: Page
-        meta: list[Meta] = field(default_factory=list)
-        sections: list[Section] = field(default_factory=list)
-        entities: list[Entity] = field(default_factory=list)
-        dicts: list[Dict] = field(default_factory=list)
-        sets: list[DataSet] = field(default_factory=list)
-        queries: list[Query] = field(default_factory=list)
-    
-    
-    def parse_aicml(text: str) -> AicmlDocument:
-      doc = AicmlDocument(page=Page())
-        current_block = None
-        current_section = None
-        paragraph: list[str] = []
-        code_lines: list[str] = []
-        code_lang: str | None = None
-        # initialize holders for dict/set/row/query/list/note/example/qa/meta/entity
-    
-        def flush():
-            nonlocal current_block, paragraph, code_lines, code_lang, current_section
-            if current_block == "P" and current_section:
-                text = " ".join(paragraph).strip()
-                if text:
-                    current_section.blocks.append(ParagraphBlock(kind="paragraph", text=text))
-                paragraph = []
-            if current_block == "CODE" and current_section:
-                current_section.blocks.append(CodeBlock(kind="code", lang=code_lang, code="\n".join(code_lines)))
-                code_lines, code_lang = [], None
-            if current_block == "SECTION" and current_section:
-                doc.sections.append(current_section)
-                current_section = None
-            # flush DICT/SET/ROW/QUERY/META/ENTITY/etc.
-            current_block = None
-    
-        for raw in text.splitlines():
-            m_header = HEADER_RE.match(raw)
-            if m_header:
-                flush()
-                current_block = m_header.group(1)
-                if current_block == "SECTION":
-                    current_section = Section(id="", blocks=[])
-                elif current_block == "P":
-                    paragraph = []
-                elif current_block == "CODE":
-                    code_lines, code_lang = [], None
-                # init other block objects
-                continue
-    
-            m_kv = KV_RE.match(raw)
-            if current_block == "PAGE" and m_kv:
-                setattr(doc.page, m_kv.group(1), m_kv.group(2))
-                continue
-            if current_block == "SECTION" and current_section and m_kv:
-                setattr(current_section, m_kv.group(1).replace('.', '_'), coerce(m_kv.group(2)))
-                continue
-            if current_block == "P":
-                paragraph.append(raw.strip())
-                continue
-            if current_block == "CODE":
-                if m_kv and m_kv.group(1) == "lang":
-                    code_lang = m_kv.group(2).strip()
-                else:
-                    code_lines.append(raw)
-                continue
-            # handle remaining blocks here
-    
-        flush()
-        return doc
+## 8. Example Mini-Document
 
-### 4.3 C#
+```
+PAGE:
+   id: sample-brief
+   title: Battery Launch Notes
 
-    public sealed class AicmlParser {
-      private static readonly Regex Header = new("^([A-Z]+):\\s*$", RegexOptions.Compiled);
-      private static readonly Regex Kv = new("^\\s*([a-zA-Z0-9_.]+):\\s*(.*)$", RegexOptions.Compiled);
-    
-      public AicmlDocument Parse(string text) {
-        var doc = new AicmlDocument();
-        var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
-    
-        string currentBlock = null;
-        Section currentSection = null;
-        var paragraph = new List();
-        var codeLines = new List();
-        string codeLang = null;
-        // holders for dict/set/row/query/list/note/example/qa/meta/entity
-    
-        void Flush() {
-          if (currentBlock == "P" && currentSection != null) {
-            var textValue = string.Join(" ", paragraph).Trim();
-            if (textValue.Length > 0)
-              currentSection.Blocks.Add(new ParagraphBlock { Kind = "paragraph", Text = textValue });
-            paragraph.Clear();
-          }
-          if (currentBlock == "CODE" && currentSection != null) {
-            currentSection.Blocks.Add(new CodeBlock { Kind = "code", Lang = codeLang, Code = string.Join("\n", codeLines) });
-            codeLines.Clear();
-            codeLang = null;
-          }
-          if (currentBlock == "SECTION" && currentSection != null) {
-            doc.Sections.Add(currentSection);
-            currentSection = null;
-          }
-          // flush DICT/SET/ROW/QUERY/META/ENTITY/etc.
-          currentBlock = null;
-        }
-    
-        foreach (var raw in lines) {
-          var line = raw.TrimEnd();
-          var mHeader = Header.Match(line);
-          if (mHeader.Success) {
-            Flush();
-            currentBlock = mHeader.Groups[1].Value;
-            if (currentBlock == "SECTION") currentSection = new Section { Blocks = new List() };
-            else if (currentBlock == "P") paragraph.Clear();
-            else if (currentBlock == "CODE") { codeLines.Clear(); codeLang = null; }
-            // init other block objects
-            continue;
-          }
-    
-          var kv = Kv.Match(line);
-          if (currentBlock == "PAGE" && kv.Success) {
-            doc.Page.Assign(kv.Groups[1].Value, kv.Groups[2].Value);
-            continue;
-          }
-          if (currentBlock == "SECTION" && currentSection != null && kv.Success) {
-            currentSection.Assign(kv.Groups[1].Value, kv.Groups[2].Value);
-            continue;
-          }
-          if (currentBlock == "P") { paragraph.Add(line.Trim()); continue; }
-          if (currentBlock == "CODE") {
-            if (kv.Success && kv.Groups[1].Value == "lang") codeLang = kv.Groups[2].Value;
-            else codeLines.Add(raw);
-            continue;
-          }
-          // mirror logic for other block types
-        }
-    
-        Flush();
-        return doc;
-      }
-    }
+SECTION:
+   id: highlights
+   level: 1
 
-### 4.4 Java
+TITLE:
+   Highlights
 
-    public final class AicmlParser {
-      private static final Pattern HEADER = Pattern.compile("^([A-Z]+):\\s*$");
-      private static final Pattern KV = Pattern.compile("^\\s*([a-zA-Z0-9_.]+):\\s*(.*)$");
-    
-      public AicmlDocument parse(String text) {
-        AicmlDocument doc = new AicmlDocument();
-        String[] lines = text.split("\\r?\\n");
-        String currentBlock = null;
-        Section currentSection = null;
-        List paragraph = new ArrayList<>();
-        List codeLines = new ArrayList<>();
-        String codeLang = null;
-        // instantiate dict/set/row/query/list/note/example helpers
-    
-        Runnable flush = () -> {
-          if ("P".equals(currentBlock) && currentSection != null) {
-            String textValue = String.join(" ", paragraph).trim();
-            if (!textValue.isEmpty()) currentSection.blocks.add(new ParagraphBlock("paragraph", textValue));
-            paragraph.clear();
-          }
-          if ("CODE".equals(currentBlock) && currentSection != null) {
-            currentSection.blocks.add(new CodeBlock("code", codeLang, String.join("\n", codeLines)));
-            codeLines.clear();
-            codeLang = null;
-          }
-          if ("SECTION".equals(currentBlock) && currentSection != null) {
-            doc.sections.add(currentSection);
-            currentSection = null;
-          }
-          // flush DICT/SET/ROW/QUERY/etc.
-          currentBlock = null;
-        };
-    
-        for (String raw : lines) {
-          String line = raw.trimEnd();
-          Matcher header = HEADER.matcher(line);
-          if (header.matches()) {
-            flush.run();
-            currentBlock = header.group(1);
-            if ("SECTION".equals(currentBlock)) currentSection = new Section();
-            else if ("P".equals(currentBlock)) paragraph.clear();
-            else if ("CODE".equals(currentBlock)) { codeLines.clear(); codeLang = null; }
-            // init helpers for other block types
-            continue;
-          }
-    
-          Matcher kv = KV.matcher(line);
-          if ("PAGE".equals(currentBlock) && kv.matches()) {
-            doc.page.assign(kv.group(1), kv.group(2));
-            continue;
-          }
-          if ("SECTION".equals(currentBlock) && currentSection != null && kv.matches()) {
-            currentSection.assign(kv.group(1), kv.group(2));
-            continue;
-          }
-          if ("P".equals(currentBlock)) { paragraph.add(line.trim()); continue; }
-          if ("CODE".equals(currentBlock)) {
-            if (kv.matches() && "lang".equals(kv.group(1))) codeLang = kv.group(2);
-            else codeLines.add(raw);
-            continue;
-          }
-          // handle META, LIST, ITEM, NOTE, ENTITY, DICT, SET, ROW, QUERY
-        }
-    
-        flush.run();
-        return doc;
-      }
-    }
+LIST:
+   style: unordered
 
-### 4.5 Other runtimes
+ITEM:
+   12% higher energy density versus prior gen.
 
-*   **Go:** structs + `bufio.Scanner`; reuse header/KV regex, keep streaming.
-*   **Rust:** enums/structs + `lines()`; prefer manual prefix checks to avoid regex overhead.
-*   **Kotlin/Swift:** sealed interfaces/data classes map cleanly to `SectionBlock` unions.
-*   Whichever language you use, mirror the flush rules exactly so ROW/QUERY boundaries stay deterministic.
+DICT:
+   id: dict.metrics.v1
+   kind: metric
+   field.i: metric_id
+   field.n: name
+   field.v: value
 
-5\. Next steps
---------------
+SET:
+   id: perf-metrics
+   dict: dict.metrics.v1
 
-*   Publish shared AST typings/packages (npm, PyPI, NuGet, Maven).
-*   Add schema validation (Zod, Pydantic, FluentValidation, Jakarta Bean Validation) right after parsing.
-*   Implement an AICQL evaluator module that operates on the JSON AST for analytics and previews.
+ROW:
+   i: M-ENERGY
+   n: Energy Density
+   v: 280 Wh/kg
 
-[Back to the main AICML 1.0 specification](index.html)
+QUERY:
+   id: q.metric-count
+   from.set: perf-metrics
+   using.dict: dict.metrics.v1
+   select: count(i)
+```
+
+This small file demonstrates every core layer in under 30 lines.
+
+## 9. Getting Comfortable
+
+- Start with narrative sections, then layer in structured data as DICT/SET/ROW once aliases feel natural.
+- Reuse patterns: copy a DICT/SET block from another file and modify the alias descriptions to match your domain.
+- Keep validation simple: if a human can skim and understand the intent, an AICML parser should be able to map it to JSON deterministically.
+
+AICML’s goal is to keep AI-facing documents human-writable, versionable, and cheap to tokenize—use these guidelines as your checklist whenever you author or review an `.aicml` file.
