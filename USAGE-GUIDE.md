@@ -1,546 +1,546 @@
-# AI:CML Usage Guide and Best Practices
-
-This guide provides practical advice for creating effective AI:CML documents.
-
-## Table of Contents
-
-1. [Getting Started](#getting-started)
-2. [Document Structure](#document-structure)
-3. [Naming Conventions](#naming-conventions)
-4. [Alias Management](#alias-management)
-5. [Query Design](#query-design)
-6. [Performance Tips](#performance-tips)
-7. [Common Patterns](#common-patterns)
-8. [Anti-Patterns](#anti-patterns)
-
-## Getting Started
-
-### Creating Your First Document
-
-1. **Start with context**: Begin with a narrative section explaining the document's purpose
-2. **Define dictionaries**: Create DICT blocks for common terms
-3. **Structure your data**: Use appropriate block types for your data
-4. **Add queries**: Include AICQL queries for common data retrieval needs
-
-### Basic Template
-
-```aicml
-# Document Title
-
-Brief description of what this document contains and its purpose.
-
-DICT aliases
-  term1: Full Description of Term 1
-  term2: Full Description of Term 2
-END
-
-ENTITY YourEntity_001
-  field1: value1
-  field2: @term1
-END
-
-QUERY YourQuery
-  SELECT field1, field2
-  FROM ENTITY
-END
-```
-
-## Document Structure
-
-### Recommended Order
-
-1. **Title and description** (narrative)
-2. **Dictionary definitions** (DICT blocks)
-3. **Main data structures** (ENTITY, SET, ROW blocks)
-4. **Queries** (QUERY blocks)
-5. **Closing notes** (narrative)
-
-### Example Structure
-
-```aicml
-# Title
-
-Overview and context...
-
-## Dictionaries
-
-DICT aliases
-  ...
-END
-
-DICT categories
-  ...
-END
-
-## Data
-
-ENTITY Data_001
-  ...
-END
-
-## Analysis
-
-QUERY Analysis_001
-  ...
-END
-
-## Summary
-
-Final thoughts and conclusions...
-```
-
-## Naming Conventions
-
-### Block Names
-
-- **ENTITY**: Use descriptive names with optional sequence numbers
-  - Good: `Product_001`, `Customer_Smith`, `Order_2024_001`
-  - Avoid: `e1`, `thing`, `data`
-
-- **DICT**: Use plural nouns describing the category
-  - Good: `aliases`, `categories`, `manufacturers`
-  - Avoid: `dict1`, `mydict`, `stuff`
-
-- **SET**: Use plural nouns
-  - Good: `AvailableColors`, `SupportedFormats`
-  - Avoid: `set1`, `items`
-
-- **ROW**: Use descriptive table names
-  - Good: `SalesData_Q1_2024`, `UserMetrics`
-  - Avoid: `table1`, `data`
-
-- **QUERY**: Use action-oriented names
-  - Good: `FindHighValueCustomers`, `CalculateTotalRevenue`
-  - Avoid: `query1`, `q`, `search`
-
-### Field Names
-
-- Use camelCase or snake_case consistently
-- Be descriptive but concise
-- Good: `totalAmount`, `customer_name`, `createdAt`
-- Avoid: `ta`, `cn`, `x`
-
-## Alias Management
-
-### When to Use Aliases
-
-✅ **Use aliases for:**
-- Terms repeated multiple times (5+ occurrences)
-- Long descriptions that can be abbreviated
-- Domain-specific terminology
-- Categorical values
-- Status codes and types
-
-❌ **Don't use aliases for:**
-- Unique values that appear only once
-- Simple words (unless standardizing terminology)
-- Numeric values
-- Identifiers
-
-### Alias Organization
-
-Group related aliases in separate dictionaries:
-
-```aicml
-DICT business_terms
-  revenue: Total Revenue from Sales
-  profit: Net Profit After Expenses
-END
-
-DICT status_codes
-  active: Currently Active
-  inactive: Temporarily Inactive
-  archived: Permanently Archived
-END
-
-DICT locations
-  ny: New York Office
-  la: Los Angeles Office
-  sf: San Francisco Office
-END
-```
-
-### Alias Naming
-
-- Use short, memorable identifiers
-- Reflect the full term's meaning
-- Use consistent prefixes for related terms
-- Good: `@electronics`, `@wireless`, `@mechanical`
-- Avoid: `@e`, `@term1`, `@x`
-
-## Query Design
-
-### Query Structure
-
-Keep queries focused on a single question:
-
-**Good:**
-```aicml
-QUERY HighValueCustomers
-  SELECT name, total_purchases
-  FROM ENTITY Customer
-  WHERE total_purchases > 10000
-  ORDER BY total_purchases DESC
-END
-```
-
-**Better - Multiple Focused Queries:**
-```aicml
-QUERY HighValueCustomers
-  SELECT name, total_purchases
-  FROM ENTITY Customer
-  WHERE total_purchases > 10000
-  ORDER BY total_purchases DESC
-END
-
-QUERY CustomersByRegion
-  SELECT region, COUNT(*)
-  FROM ENTITY Customer
-  GROUP BY region
-END
-```
-
-### Query Naming
-
-Use descriptive, action-oriented names:
-
-- **Analysis**: `CalculateAveragePrice`, `FindOutliers`
-- **Filtering**: `GetActiveUsers`, `FindExpiredItems`
-- **Aggregation**: `SumTotalRevenue`, `CountByCategory`
-- **Sorting**: `RankByScore`, `OrderByDate`
-
-### Query Optimization
-
-1. **Filter early**: Place WHERE clauses before ORDER BY
-2. **Limit results**: Use LIMIT for large datasets
-3. **Use specific fields**: Avoid `SELECT *` when possible
-4. **Index-friendly**: Query fields that are commonly used
-
-## Performance Tips
-
-### Token Efficiency
-
-1. **Use aliases for repeated terms**:
-   ```aicml
-   # Without aliases: ~200 tokens
-   category: Electronic Devices and Accessories
-   category: Electronic Devices and Accessories
-   category: Electronic Devices and Accessories
-   
-   # With aliases: ~120 tokens
-   DICT aliases
-     electronics: Electronic Devices and Accessories
-   END
-   category: @electronics
-   category: @electronics
-   category: @electronics
-   ```
-
-2. **Avoid redundant text**: Don't repeat descriptions in multiple places
-
-3. **Use abbreviations in dictionaries**: Define full terms in DICT, use short refs
-
-### Document Size
-
-- **Small documents** (< 10KB): Single file works well
-- **Medium documents** (10-100KB): Consider splitting by domain
-- **Large documents** (> 100KB): Split into multiple files with cross-references
-
-### Block Organization
-
-Place frequently accessed data near the top of the document:
-
-1. Critical dictionaries
-2. Primary entities
-3. Supporting data
-4. Historical/archived data
-5. Supplementary queries
-
-## Common Patterns
-
-### Pattern 1: Master-Detail Relationship
-
-```aicml
-ENTITY Order_001
-  id: ORD-001
-  customer: CUST-001
-  total: 299.97
-END
-
-ENTITY OrderItem_001
-  order_id: ORD-001
-  product: PRD-001
-  quantity: 3
-  price: 99.99
-END
-
-QUERY OrderDetails
-  SELECT o.id, oi.product, oi.quantity
-  FROM ENTITY Order o, ENTITY OrderItem oi
-  WHERE o.id = oi.order_id
-END
-```
-
-### Pattern 2: Hierarchical Categories
-
-```aicml
-DICT categories
-  electronics: Electronic Devices
-  electronics.computers: Computer Systems
-  electronics.computers.laptops: Laptop Computers
-  electronics.phones: Mobile Phones
-END
-
-ENTITY Product_001
-  name: Gaming Laptop
-  category: @electronics.computers.laptops
-END
-```
-
-### Pattern 3: Temporal Data
-
-```aicml
-ROW Metrics_Daily
-  | Date | Visitors | Conversions | Revenue |
-  | 2024-11-01 | 1200 | 45 | 5400.00 |
-  | 2024-11-02 | 1350 | 52 | 6240.00 |
-END
-
-QUERY WeeklyTrend
-  SELECT Date, Visitors, Conversions
-  FROM ROW Metrics_Daily
-  WHERE Date >= 2024-11-01 AND Date <= 2024-11-07
-  ORDER BY Date ASC
-END
-```
-
-### Pattern 4: Tagging System
-
-```aicml
-DICT tags
-  featured: Featured Product
-  sale: On Sale
-  new: New Arrival
-  seasonal: Seasonal Item
-END
-
-ENTITY Product_001
-  name: Winter Jacket
-  tags: @featured, @seasonal
-END
-
-QUERY FeaturedProducts
-  SELECT name, tags
-  FROM ENTITY Product
-  WHERE tags CONTAINS @featured
-END
-```
-
-## Anti-Patterns
-
-### ❌ Anti-Pattern 1: Over-Structuring
-
-**Bad:**
-```aicml
-ENTITY SimpleText_001
-  text: Hello
-END
-
-ENTITY SimpleText_002
-  text: World
-END
-```
-
-**Good:**
-```aicml
-Just use narrative text when structure isn't needed:
-
-Hello World
-```
-
-### ❌ Anti-Pattern 2: Alias Overuse
-
-**Bad:**
-```aicml
-DICT aliases
-  a: A
-  b: B
-  c: C
-  the: The
-END
-
-name: @a simple name
-```
-
-**Good:**
-```aicml
-name: A simple name
-```
-
-### ❌ Anti-Pattern 3: Redundant Data
-
-**Bad:**
-```aicml
-ENTITY Product_001
-  name: Keyboard
-  name_uppercase: KEYBOARD
-  name_lowercase: keyboard
-END
-```
-
-**Good:**
-```aicml
-ENTITY Product_001
-  name: Keyboard
-END
-
-# Transform in queries if needed
-QUERY UppercaseNames
-  SELECT UPPER(name)
-  FROM ENTITY Product
-END
-```
-
-### ❌ Anti-Pattern 4: Unclear Queries
-
-**Bad:**
-```aicml
-QUERY Query1
-  SELECT *
-  FROM ENTITY
-  WHERE x > 5
-END
-```
-
-**Good:**
-```aicml
-QUERY HighValueProducts
-  SELECT name, price, stock
-  FROM ENTITY Product
-  WHERE price > 5
-END
-```
-
-### ❌ Anti-Pattern 5: Missing Context
-
-**Bad:**
-```aicml
-ENTITY E001
-  f1: v1
-  f2: v2
-END
-```
-
-**Good:**
-```aicml
-# Customer Database
-
-This section contains customer records for Q4 2024.
-
-ENTITY Customer_001
-  name: John Smith
-  email: john@example.com
-END
-```
-
-## Validation Checklist
-
-Before finalizing your AI:CML document:
-
-- [ ] Document has a clear title and description
-- [ ] Dictionaries are defined before they're used
-- [ ] Aliases are used consistently (@ prefix)
-- [ ] Block names are descriptive and unique
-- [ ] Queries have clear, action-oriented names
-- [ ] ROW blocks have consistent column counts
-- [ ] All END keywords match their opening blocks
-- [ ] Comments explain complex sections
-- [ ] No redundant or duplicate data
-- [ ] File uses UTF-8 encoding
-
-## Tools and Editors
-
-### Text Editors
-
-Any text editor works, but these provide good experience:
-
-- **VS Code**: Syntax highlighting via custom extension
-- **Sublime Text**: Custom syntax definitions
-- **Vim/Emacs**: Custom syntax files
-- **Notepad++**: User-defined language
-
-### Recommended Extensions
-
-- Syntax highlighting for `.aicml` files
-- Bracket matching for block delimiters
-- Indent guides for nested structures
-- Search functionality for @alias references
-
-## Versioning
-
-When versioning AI:CML documents:
-
-1. Use semantic versioning in filenames: `data-v1.0.aicml`
-2. Add version metadata as comments:
-   ```aicml
-   # Version: 1.0.0
-   # Last Updated: 2024-11-23
-   # Author: Jane Doe
-   ```
-3. Track changes in git or other version control
-4. Document breaking changes in commit messages
-
-## Migration Guide
-
-### From JSON
-
-```json
-{
-  "products": [
-    {"id": 1, "name": "Keyboard", "price": 99.99}
-  ]
-}
-```
-
-```aicml
-ENTITY Product_001
-  id: 1
-  name: Keyboard
-  price: 99.99
-END
-```
-
-### From CSV
-
-```csv
-id,name,price
-1,Keyboard,99.99
-```
-
-```aicml
-ROW Products
-  | id | name | price |
-  | 1 | Keyboard | 99.99 |
-END
-```
-
-### From YAML
-
-```yaml
-categories:
-  electronics: Electronic Devices
-  furniture: Home Furniture
-```
-
-```aicml
-DICT categories
-  electronics: Electronic Devices
-  furniture: Home Furniture
-END
-```
-
-## Further Reading
-
-- [SPECIFICATION.md](SPECIFICATION.md) - Complete format specification
-- [GRAMMAR.md](GRAMMAR.md) - Formal grammar definition
-- [examples/](examples/) - Example documents
+Contents
+--------
+
+1.  [1\. Overview](#overview)
+2.  [2\. Canonical JSON AST](#json-ast)
+    *   [2.1 Document](#json-document)
+    *   [2.2 Page & meta](#json-page)
+    *   [2.3 Sections & blocks](#json-sections)
+    *   [2.4 Entities](#json-entities)
+    *   [2.5 Dict / Set / Row](#json-dict)
+    *   [2.6 Queries](#json-queries)
+3.  [3\. Parser state machine](#parser)
+    *   [3.1 Token model](#parser-token)
+    *   [3.2 State loop](#parser-loop)
+    *   [3.3 Flush semantics](#parser-flush)
+4.  [4\. Language skeletons](#languages)
+    *   [4.1 JavaScript / React](#js)
+    *   [4.2 Python](#python)
+    *   [4.3 C#](#csharp)
+    *   [4.4 Java](#java)
+    *   [4.5 Other runtimes](#others)
+5.  [5\. Next steps](#next)
+
+1\. Overview
+------------
+
+The plain-text AICML syntax is human-friendly, but production systems should consume a consistent JSON graph. The structures below are the canonical representation—emit them from every parser, no matter the stack.
+
+Looking for the XML-era XSD/Relax NG? Fetch the previous revision of this appendix from source control. This edition focuses on the AICML 1.0 block syntax → JSON pipeline and parser architecture.
+
+2\. Canonical JSON AST
+----------------------
+
+Interfaces are shown in TypeScript notation; mirror them as dataclasses, records, or POCOs in your language.
+
+### 2.1 Top-level document
+
+    interface AicmlDocument {
+      page: Page;
+      meta: Meta[];
+      sections: Section[];
+      entities: Entity[];
+      dicts: Dict[];
+      sets: DataSet[];
+      queries: Query[];
+    }
+
+### 2.2 Page & meta
+
+    interface Page {
+      id: string;
+      lang?: string;
+      title?: string;
+      type?: string; // article | docs | landing | faq | ...
+    }
+    
+    interface Meta {
+      name: string;
+      value: string;
+    }
+
+### 2.3 Sections & blocks
+
+    interface Section {
+      id: string;
+      type?: string;
+      importance?: "high" | "normal" | "low";
+      level?: number;
+      order?: number;
+      parentId?: string | null;
+      sets?: string[];
+      entities?: string[];
+      blocks: SectionBlock[];
+    }
+    
+    type SectionBlock =
+      | TitleBlock
+      | ParagraphBlock
+      | ListBlock
+      | NoteBlock
+      | ExampleBlock
+      | QaBlock
+      | CodeBlock
+      | MediaBlock;
+    
+    interface TitleBlock { kind: "title"; text: string; }
+    interface ParagraphBlock { kind: "paragraph"; text: string; }
+    
+    interface ListBlock {
+      kind: "list";
+      style: "ordered" | "unordered";
+      items: ListItem[];
+    }
+    
+    interface ListItem {
+      order?: number;
+      text: string;
+    }
+    
+    interface NoteBlock {
+      kind: "note";
+      noteType: "info" | "warning" | "tip";
+      importance?: "high" | "normal" | "low";
+      blocks: ParagraphBlock[]; // extend with lists/code if needed
+    }
+    
+    interface ExampleBlock {
+      kind: "example";
+      blocks: Array;
+    }
+    
+    interface QaBlock {
+      kind: "qa";
+      question: string;
+      answer: string | string[];
+    }
+    
+    interface CodeBlock {
+      kind: "code";
+      lang?: string;
+      code: string;
+    }
+    
+    interface MediaBlock {
+      kind: "media";
+      mediaType: "image" | "video" | "audio" | "diagram";
+      src: string;
+      alt?: string;
+      title?: string;
+    }
+
+### 2.4 Entities
+
+    interface Entity {
+      id: string;
+      kind: string; // product | book | event | ...
+      name?: string;
+      order?: number;
+      parentId?: string | null;
+      role?: string;
+      properties: Record; // dotted semantic keys
+    }
+
+### 2.5 Dict / Set / Row
+
+    interface DictField {
+      alias: string; // pa
+      path: string;  // price.amount
+    }
+    
+    interface Dict {
+      id: string;
+      kind?: string;
+      fields: DictField[];
+    }
+    
+    interface DataRow {
+      values: Record; // alias -> value
+    }
+    
+    interface DataSet {
+      id: string;
+      dictId: string;
+      kind?: string;
+      description?: string;
+      rows: DataRow[];
+    }
+
+### 2.6 Queries
+
+    type SortDirection = "asc" | "desc";
+    
+    interface SortSpec {
+      field: string;
+      direction: SortDirection;
+    }
+    
+    interface Query {
+      id: string;
+      fromSetId?: string;
+      fromEntityId?: string;
+      usingDictId?: string;
+      where?: string;
+      select?: string[];
+      sort?: SortSpec[];
+      limit?: number;
+    }
+
+3\. Parser state machine
+------------------------
+
+### 3.1 Token model
+
+*   Headers: `^[A-Z]+:` (PAGE, SECTION, ROW, QUERY, ...).
+*   Key/value lines: `key: value` inside a block.
+*   Paragraph and code blocks buffer plain text until the next header.
+*   Whitespace-only lines inside text blocks should be preserved for CODE, collapsed for P.
+
+### 3.2 State loop
+
+    state = {
+      currentBlock: null,
+      currentSection: null,
+      currentList: null,
+      currentDict: null,
+      currentSet: null,
+      currentRow: null,
+      currentQuery: null,
+      paragraphLines: [],
+      codeLang: null,
+      codeLines: []
+    }
+    
+    for each line in file:
+      if matchesHeader(line):
+        flushCurrentBlock()
+        startBlock(headerName)
+      else:
+        appendToBlock(line)
+    
+    flushCurrentBlock() // handle final block
+
+### 3.3 Flush semantics & helpers
+
+*   **P:** join `paragraphLines`, trim, push ParagraphBlock.
+*   **CODE:** join `codeLines` with `\n`, attach `codeLang`.
+*   **LIST/ITEM:** instantiate ListBlock when LIST starts; each ITEM appends immediately.
+*   **NOTE/EXAMPLE/QA:** maintain temporary objects just like SECTION; push when a new header begins.
+*   **DICT/SET/ROW:** DICT goes to `doc.dicts`; SET goes to `doc.sets`; ROWs append to `currentSet.rows`.
+*   **QUERY:** parse `select` into arrays (split commas) and `sort` into `SortSpec` tuples.
+
+4\. Language skeletons
+----------------------
+
+Each sample references the shared logic above; expand the model classes per Section 2.
+
+### 4.1 JavaScript / React
+
+    const HEADER_RE = /^([A-Z]+):\s*$/;
+    const KV_RE = /^\s*([a-zA-Z0-9_.]+):\s*(.*)$/;
+    
+              export function parseAicml(text) {
+      const lines = text.split(/\r?\n/);
+      const doc = { page: { id: "" }, meta: [], sections: [], entities: [], dicts: [], sets: [], queries: [] };
+      let currentBlock = null;
+      let currentSection = null;
+      let paragraph = [];
+      let codeLang;
+      let codeLines = [];
+      // ...holders for list/note/example/dict/set/row/query/entity/meta
+    
+      const flush = () => {
+        if (currentBlock === "P" && currentSection) {
+          const text = paragraph.join(" ").trim();
+          if (text) currentSection.blocks.push({ kind: "paragraph", text });
+          paragraph = [];
+        }
+        if (currentBlock === "CODE" && currentSection) {
+          currentSection.blocks.push({ kind: "code", lang: codeLang, code: codeLines.join("\n") });
+          codeLang = undefined;
+          codeLines = [];
+        }
+        if (currentBlock === "SECTION" && currentSection) {
+          doc.sections.push(currentSection);
+          currentSection = null;
+        }
+        // flush DICT, SET, ROW, QUERY, ENTITY, NOTE, EXAMPLE, QA as needed
+        currentBlock = null;
+      };
+    
+      for (const rawLine of lines) {
+        const line = rawLine.trimEnd();
+        const header = line.match(HEADER_RE);
+        if (header) {
+          flush();
+          currentBlock = header[1];
+          if (currentBlock === "SECTION") currentSection = { id: "", blocks: [] };
+          if (currentBlock === "P") paragraph = [];
+          if (currentBlock === "CODE") { codeLang = undefined; codeLines = []; }
+          // initialize LIST, NOTE, EXAMPLE, QA, DICT, SET, ROW, QUERY, ENTITY, META etc.
+          continue;
+        }
+    
+        const kv = line.match(KV_RE);
+        if (currentBlock === "PAGE" && kv) { doc.page[kv[1]] = kv[2]; continue; }
+        if (currentBlock === "SECTION" && kv && currentSection) {
+          currentSection[kv[1]] = isFinite(+kv[2]) ? Number(kv[2]) : kv[2];
+          continue;
+        }
+        if (currentBlock === "P") { paragraph.push(line.trim()); continue; }
+        if (currentBlock === "CODE") {
+          if (kv && kv[1] === "lang") codeLang = kv[2];
+          else codeLines.push(rawLine);
+          continue;
+        }
+        // handle META, LIST, ITEM, NOTE, ENTITY, DICT, SET, ROW, QUERY with similar guards
+      }
+    
+      flush();
+      return doc;
+    }
+    
+    // React usage: const ast = useMemo(() => parseAicml(raw), [raw]);
+
+### 4.2 Python
+
+    HEADER_RE = re.compile(r'^([A-Z]+):\s*$')
+    KV_RE = re.compile(r'^\s*([a-zA-Z0-9_.]+):\s*(.*)$')
+    
+    @dataclass
+    class Page:
+        id: str = ""
+        lang: str | None = None
+        title: str | None = None
+        type: str | None = None
+    
+    @dataclass
+    class AicmlDocument:
+        page: Page
+        meta: list[Meta] = field(default_factory=list)
+        sections: list[Section] = field(default_factory=list)
+        entities: list[Entity] = field(default_factory=list)
+        dicts: list[Dict] = field(default_factory=list)
+        sets: list[DataSet] = field(default_factory=list)
+        queries: list[Query] = field(default_factory=list)
+    
+    
+    def parse_aicml(text: str) -> AicmlDocument:
+      doc = AicmlDocument(page=Page())
+        current_block = None
+        current_section = None
+        paragraph: list[str] = []
+        code_lines: list[str] = []
+        code_lang: str | None = None
+        # initialize holders for dict/set/row/query/list/note/example/qa/meta/entity
+    
+        def flush():
+            nonlocal current_block, paragraph, code_lines, code_lang, current_section
+            if current_block == "P" and current_section:
+                text = " ".join(paragraph).strip()
+                if text:
+                    current_section.blocks.append(ParagraphBlock(kind="paragraph", text=text))
+                paragraph = []
+            if current_block == "CODE" and current_section:
+                current_section.blocks.append(CodeBlock(kind="code", lang=code_lang, code="\n".join(code_lines)))
+                code_lines, code_lang = [], None
+            if current_block == "SECTION" and current_section:
+                doc.sections.append(current_section)
+                current_section = None
+            # flush DICT/SET/ROW/QUERY/META/ENTITY/etc.
+            current_block = None
+    
+        for raw in text.splitlines():
+            m_header = HEADER_RE.match(raw)
+            if m_header:
+                flush()
+                current_block = m_header.group(1)
+                if current_block == "SECTION":
+                    current_section = Section(id="", blocks=[])
+                elif current_block == "P":
+                    paragraph = []
+                elif current_block == "CODE":
+                    code_lines, code_lang = [], None
+                # init other block objects
+                continue
+    
+            m_kv = KV_RE.match(raw)
+            if current_block == "PAGE" and m_kv:
+                setattr(doc.page, m_kv.group(1), m_kv.group(2))
+                continue
+            if current_block == "SECTION" and current_section and m_kv:
+                setattr(current_section, m_kv.group(1).replace('.', '_'), coerce(m_kv.group(2)))
+                continue
+            if current_block == "P":
+                paragraph.append(raw.strip())
+                continue
+            if current_block == "CODE":
+                if m_kv and m_kv.group(1) == "lang":
+                    code_lang = m_kv.group(2).strip()
+                else:
+                    code_lines.append(raw)
+                continue
+            # handle remaining blocks here
+    
+        flush()
+        return doc
+
+### 4.3 C#
+
+    public sealed class AicmlParser {
+      private static readonly Regex Header = new("^([A-Z]+):\\s*$", RegexOptions.Compiled);
+      private static readonly Regex Kv = new("^\\s*([a-zA-Z0-9_.]+):\\s*(.*)$", RegexOptions.Compiled);
+    
+      public AicmlDocument Parse(string text) {
+        var doc = new AicmlDocument();
+        var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+    
+        string currentBlock = null;
+        Section currentSection = null;
+        var paragraph = new List();
+        var codeLines = new List();
+        string codeLang = null;
+        // holders for dict/set/row/query/list/note/example/qa/meta/entity
+    
+        void Flush() {
+          if (currentBlock == "P" && currentSection != null) {
+            var textValue = string.Join(" ", paragraph).Trim();
+            if (textValue.Length > 0)
+              currentSection.Blocks.Add(new ParagraphBlock { Kind = "paragraph", Text = textValue });
+            paragraph.Clear();
+          }
+          if (currentBlock == "CODE" && currentSection != null) {
+            currentSection.Blocks.Add(new CodeBlock { Kind = "code", Lang = codeLang, Code = string.Join("\n", codeLines) });
+            codeLines.Clear();
+            codeLang = null;
+          }
+          if (currentBlock == "SECTION" && currentSection != null) {
+            doc.Sections.Add(currentSection);
+            currentSection = null;
+          }
+          // flush DICT/SET/ROW/QUERY/META/ENTITY/etc.
+          currentBlock = null;
+        }
+    
+        foreach (var raw in lines) {
+          var line = raw.TrimEnd();
+          var mHeader = Header.Match(line);
+          if (mHeader.Success) {
+            Flush();
+            currentBlock = mHeader.Groups[1].Value;
+            if (currentBlock == "SECTION") currentSection = new Section { Blocks = new List() };
+            else if (currentBlock == "P") paragraph.Clear();
+            else if (currentBlock == "CODE") { codeLines.Clear(); codeLang = null; }
+            // init other block objects
+            continue;
+          }
+    
+          var kv = Kv.Match(line);
+          if (currentBlock == "PAGE" && kv.Success) {
+            doc.Page.Assign(kv.Groups[1].Value, kv.Groups[2].Value);
+            continue;
+          }
+          if (currentBlock == "SECTION" && currentSection != null && kv.Success) {
+            currentSection.Assign(kv.Groups[1].Value, kv.Groups[2].Value);
+            continue;
+          }
+          if (currentBlock == "P") { paragraph.Add(line.Trim()); continue; }
+          if (currentBlock == "CODE") {
+            if (kv.Success && kv.Groups[1].Value == "lang") codeLang = kv.Groups[2].Value;
+            else codeLines.Add(raw);
+            continue;
+          }
+          // mirror logic for other block types
+        }
+    
+        Flush();
+        return doc;
+      }
+    }
+
+### 4.4 Java
+
+    public final class AicmlParser {
+      private static final Pattern HEADER = Pattern.compile("^([A-Z]+):\\s*$");
+      private static final Pattern KV = Pattern.compile("^\\s*([a-zA-Z0-9_.]+):\\s*(.*)$");
+    
+      public AicmlDocument parse(String text) {
+        AicmlDocument doc = new AicmlDocument();
+        String[] lines = text.split("\\r?\\n");
+        String currentBlock = null;
+        Section currentSection = null;
+        List paragraph = new ArrayList<>();
+        List codeLines = new ArrayList<>();
+        String codeLang = null;
+        // instantiate dict/set/row/query/list/note/example helpers
+    
+        Runnable flush = () -> {
+          if ("P".equals(currentBlock) && currentSection != null) {
+            String textValue = String.join(" ", paragraph).trim();
+            if (!textValue.isEmpty()) currentSection.blocks.add(new ParagraphBlock("paragraph", textValue));
+            paragraph.clear();
+          }
+          if ("CODE".equals(currentBlock) && currentSection != null) {
+            currentSection.blocks.add(new CodeBlock("code", codeLang, String.join("\n", codeLines)));
+            codeLines.clear();
+            codeLang = null;
+          }
+          if ("SECTION".equals(currentBlock) && currentSection != null) {
+            doc.sections.add(currentSection);
+            currentSection = null;
+          }
+          // flush DICT/SET/ROW/QUERY/etc.
+          currentBlock = null;
+        };
+    
+        for (String raw : lines) {
+          String line = raw.trimEnd();
+          Matcher header = HEADER.matcher(line);
+          if (header.matches()) {
+            flush.run();
+            currentBlock = header.group(1);
+            if ("SECTION".equals(currentBlock)) currentSection = new Section();
+            else if ("P".equals(currentBlock)) paragraph.clear();
+            else if ("CODE".equals(currentBlock)) { codeLines.clear(); codeLang = null; }
+            // init helpers for other block types
+            continue;
+          }
+    
+          Matcher kv = KV.matcher(line);
+          if ("PAGE".equals(currentBlock) && kv.matches()) {
+            doc.page.assign(kv.group(1), kv.group(2));
+            continue;
+          }
+          if ("SECTION".equals(currentBlock) && currentSection != null && kv.matches()) {
+            currentSection.assign(kv.group(1), kv.group(2));
+            continue;
+          }
+          if ("P".equals(currentBlock)) { paragraph.add(line.trim()); continue; }
+          if ("CODE".equals(currentBlock)) {
+            if (kv.matches() && "lang".equals(kv.group(1))) codeLang = kv.group(2);
+            else codeLines.add(raw);
+            continue;
+          }
+          // handle META, LIST, ITEM, NOTE, ENTITY, DICT, SET, ROW, QUERY
+        }
+    
+        flush.run();
+        return doc;
+      }
+    }
+
+### 4.5 Other runtimes
+
+*   **Go:** structs + `bufio.Scanner`; reuse header/KV regex, keep streaming.
+*   **Rust:** enums/structs + `lines()`; prefer manual prefix checks to avoid regex overhead.
+*   **Kotlin/Swift:** sealed interfaces/data classes map cleanly to `SectionBlock` unions.
+*   Whichever language you use, mirror the flush rules exactly so ROW/QUERY boundaries stay deterministic.
+
+5\. Next steps
+--------------
+
+*   Publish shared AST typings/packages (npm, PyPI, NuGet, Maven).
+*   Add schema validation (Zod, Pydantic, FluentValidation, Jakarta Bean Validation) right after parsing.
+*   Implement an AICQL evaluator module that operates on the JSON AST for analytics and previews.
+
+[Back to the main AICML 1.0 specification](index.html)
