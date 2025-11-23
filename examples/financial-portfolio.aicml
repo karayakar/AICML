@@ -64,12 +64,12 @@ ENTITY:
 DICT:
   id: dict.holdings.v1
   kind: position
-  field.sym: ticker
-  field.wt: weight_pct
-  field.mv: market_value_usd
-  field.seg: segment
-  field.exp: strategy_exposure
-  field.ytd: ytd_return_pct
+  field.s: ticker
+  field.w: weight_pct
+  field.m: market_value_usd
+  field.g: segment
+  field.e: strategy_exposure
+  field.y: ytd_return_pct
 
 SET:
   id: holdings-2025-q4
@@ -78,52 +78,52 @@ SET:
   base_fx: USD
 
 ROW:
-  sym: VOO
-  wt: 0.32
-  mv: 1_280_000
-  seg: U.S. Large Cap ETF
-  exp: Equity Core
-  ytd: 0.125
+  s: VOO
+  w: 0.32
+  m: 1_280_000
+  g: U.S. Large Cap ETF
+  e: Equity Core
+  y: 0.125
 
 ROW:
-  sym: IXUS
-  wt: 0.13
-  mv: 520_000
-  seg: International Equity ETF
-  exp: Equity Satellite
-  ytd: 0.098
+  s: IXUS
+  w: 0.13
+  m: 520_000
+  g: International Equity ETF
+  e: Equity Satellite
+  y: 0.098
 
 ROW:
-  sym: LQD
-  wt: 0.18
-  mv: 720_000
-  seg: Investment Grade Credit ETF
-  exp: Fixed Income Core
-  ytd: 0.045
+  s: LQD
+  w: 0.18
+  m: 720_000
+  g: Investment Grade Credit ETF
+  e: Fixed Income Core
+  y: 0.045
 
 ROW:
-  sym: MUB
-  wt: 0.12
-  mv: 480_000
-  seg: Municipal Ladder ETF
-  exp: Fixed Income Tax Advantaged
-  ytd: 0.032
+  s: MUB
+  w: 0.12
+  m: 480_000
+  g: Municipal Ladder ETF
+  e: Fixed Income Tax Advantaged
+  y: 0.032
 
 ROW:
-  sym: BCOM
-  wt: 0.07
-  mv: 280_000
-  seg: Broad Commodities ETF
-  exp: Inflation Hedge
-  ytd: 0.064
+  s: BCOM
+  w: 0.07
+  m: 280_000
+  g: Broad Commodities ETF
+  e: Inflation Hedge
+  y: 0.064
 
 ROW:
-  sym: HFRX
-  wt: 0.08
-  mv: 320_000
-  seg: Multi-Strategy Hedge Fund Sleeve
-  exp: Alternatives Diversifier
-  ytd: 0.051
+  s: HFRX
+  w: 0.08
+  m: 320_000
+  g: Multi-Strategy Hedge Fund Sleeve
+  e: Alternatives Diversifier
+  y: 0.051
 
 ENTITY:
   id: performance-kpis
@@ -140,15 +140,15 @@ QUERY:
   id: q.top.draw
   from.set: holdings-2025-q4
   using.dict: dict.holdings.v1
-  select: sym,wt,mv,ytd
-  where: wt >= 0.1
-  sort: wt desc
+  select: s,w,m,y
+  where: w >= 0.1
+  sort: w desc
   limit: 5
 
 QUERY:
   id: q.alt.vs.fi
   from.set: holdings-2025-q4
   using.dict: dict.holdings.v1
-  select: seg,sum(wt)
-  where: seg like "Alternatives%" OR seg like "Fixed Income%"
-  group: seg
+  select: g,sum(w)
+  where: g like "Alternatives%" OR g like "Fixed Income%"
+  group: g
