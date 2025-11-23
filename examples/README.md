@@ -51,6 +51,19 @@ Demonstrates:
 
 **Best for:** Healthcare and clinical applications
 
+### 5. financial-portfolio.aicml
+**Use Case:** Personal finance and investment tracking
+
+Demonstrates:
+- Investment holdings and positions
+- Transaction history and performance tracking
+- Asset allocation and rebalancing
+- Multiple account types
+- Financial queries and analytics
+- Goal tracking
+
+**Best for:** Finance, investment management, and personal portfolios
+
 ## Common Patterns
 
 All examples demonstrate these key AI:CML features:

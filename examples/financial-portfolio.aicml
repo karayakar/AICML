@@ -1,0 +1,281 @@
+# Financial Portfolio - AI:CML Example
+
+This example demonstrates AI:CML for personal finance tracking, including
+investments, transactions, and portfolio analytics.
+
+DICT aliases
+  stocks: Stock Securities
+  bonds: Bond Securities
+  crypto: Cryptocurrency Assets
+  etf: Exchange-Traded Funds
+  realestate: Real Estate Holdings
+END
+
+DICT sectors
+  tech: Technology Sector
+  finance: Financial Services
+  healthcare: Healthcare and Pharmaceuticals
+  energy: Energy and Utilities
+  consumer: Consumer Goods and Services
+END
+
+DICT risk_levels
+  low: Low Risk (Conservative)
+  medium: Medium Risk (Balanced)
+  high: High Risk (Aggressive)
+END
+
+DICT accounts
+  401k: 401(k) Retirement Account
+  ira: Individual Retirement Account
+  brokerage: Taxable Brokerage Account
+  savings: High-Yield Savings Account
+END
+
+## Portfolio Holdings
+
+ENTITY Holding_001
+  id: HOLD-AAPL-001
+  symbol: AAPL
+  name: Apple Inc.
+  asset_type: @stocks
+  sector: @tech
+  quantity: 50
+  purchase_price: 145.50
+  current_price: 178.25
+  account: @401k
+  risk: @medium
+  purchase_date: 2023-03-15
+END
+
+ENTITY Holding_002
+  id: HOLD-MSFT-001
+  symbol: MSFT
+  name: Microsoft Corporation
+  asset_type: @stocks
+  sector: @tech
+  quantity: 35
+  purchase_price: 310.20
+  current_price: 368.50
+  account: @401k
+  risk: @medium
+  purchase_date: 2023-06-20
+END
+
+ENTITY Holding_003
+  id: HOLD-VOO-001
+  symbol: VOO
+  name: Vanguard S&P 500 ETF
+  asset_type: @etf
+  sector: Diversified
+  quantity: 100
+  purchase_price: 385.75
+  current_price: 412.30
+  account: @ira
+  risk: @medium
+  purchase_date: 2023-01-10
+END
+
+ENTITY Holding_004
+  id: HOLD-BTC-001
+  symbol: BTC
+  name: Bitcoin
+  asset_type: @crypto
+  sector: Digital Assets
+  quantity: 0.5
+  purchase_price: 42000.00
+  current_price: 58000.00
+  account: @brokerage
+  risk: @high
+  purchase_date: 2023-09-05
+END
+
+ENTITY Holding_005
+  id: HOLD-TLT-001
+  symbol: TLT
+  name: iShares 20+ Year Treasury Bond ETF
+  asset_type: @bonds
+  sector: Government Bonds
+  quantity: 75
+  purchase_price: 92.50
+  current_price: 88.75
+  account: @ira
+  risk: @low
+  purchase_date: 2023-04-12
+END
+
+## Transaction History
+
+ROW Transactions_2024
+  | Date | Type | Symbol | Quantity | Price | Amount | Account |
+  | 2024-01-15 | BUY | VOO | 10 | 410.50 | -4105.00 | @ira |
+  | 2024-02-20 | BUY | AAPL | 10 | 175.25 | -1752.50 | @401k |
+  | 2024-03-10 | SELL | BTC | 0.1 | 62000.00 | 6200.00 | @brokerage |
+  | 2024-04-05 | BUY | MSFT | 5 | 395.75 | -1978.75 | @401k |
+  | 2024-05-15 | DIVIDEND | VOO | 100 | 0.00 | 142.50 | @ira |
+  | 2024-06-01 | DIVIDEND | AAPL | 50 | 0.00 | 12.00 | @401k |
+  | 2024-07-20 | BUY | TLT | 25 | 89.25 | -2231.25 | @ira |
+  | 2024-08-15 | SELL | MSFT | 5 | 415.50 | 2077.50 | @401k |
+END
+
+## Portfolio Performance
+
+ROW MonthlyPerformance
+  | Month | TotalValue | GainLoss | GainLossPct | Contributions | Withdrawals |
+  | 2024-01 | 85000.00 | 2500.00 | 3.03 | 1000.00 | 0.00 |
+  | 2024-02 | 88500.00 | 3500.00 | 4.12 | 1000.00 | 0.00 |
+  | 2024-03 | 91200.00 | 2700.00 | 3.05 | 1000.00 | 0.00 |
+  | 2024-04 | 94800.00 | 3600.00 | 3.95 | 1000.00 | 0.00 |
+  | 2024-05 | 93500.00 | -1300.00 | -1.37 | 1000.00 | 0.00 |
+  | 2024-06 | 96200.00 | 2700.00 | 2.89 | 1000.00 | 0.00 |
+  | 2024-07 | 99100.00 | 2900.00 | 3.01 | 1000.00 | 0.00 |
+  | 2024-08 | 102400.00 | 3300.00 | 3.33 | 1000.00 | 0.00 |
+  | 2024-09 | 101800.00 | -600.00 | -0.59 | 1000.00 | 0.00 |
+  | 2024-10 | 105600.00 | 3800.00 | 3.73 | 1000.00 | 0.00 |
+END
+
+## Asset Allocation
+
+ROW AssetAllocation
+  | AssetType | CurrentValue | Percentage | TargetPct |
+  | @stocks | 45000.00 | 42.6 | 40.0 |
+  | @etf | 48805.00 | 46.2 | 45.0 |
+  | @bonds | 6656.25 | 6.3 | 10.0 |
+  | @crypto | 29000.00 | 4.9 | 5.0 |
+END
+
+## Account Balances
+
+ROW AccountSummary
+  | Account | Balance | YTD_Return | ReturnPct |
+  | @401k | 38562.50 | 4850.00 | 14.4 |
+  | @ira | 47886.25 | 3125.50 | 7.0 |
+  | @brokerage | 29000.00 | 8450.00 | 41.1 |
+  | @savings | 15000.00 | 180.00 | 1.2 |
+END
+
+## Investment Goals
+
+ENTITY Goal_Retirement
+  name: Retirement Fund
+  target_amount: 2000000.00
+  current_amount: 86448.75
+  target_date: 2050-12-31
+  monthly_contribution: 1500.00
+  projected_return: 7.5
+END
+
+ENTITY Goal_House
+  name: House Down Payment
+  target_amount: 100000.00
+  current_amount: 29000.00
+  target_date: 2028-06-30
+  monthly_contribution: 1200.00
+  projected_return: 5.0
+END
+
+## Watchlist
+
+SET Watchlist
+  GOOGL
+  AMZN
+  NVDA
+  TSM
+  ETH
+  GLD
+  VTI
+END
+
+## Portfolio Queries
+
+QUERY CurrentHoldings
+  SELECT symbol, name, quantity, current_price, account
+  FROM ENTITY Holding
+  ORDER BY symbol ASC
+END
+
+QUERY UnrealizedGains
+  SELECT 
+    symbol,
+    name,
+    (current_price - purchase_price) * quantity as gain_loss,
+    ((current_price - purchase_price) / purchase_price) * 100 as gain_loss_pct
+  FROM ENTITY Holding
+  ORDER BY gain_loss DESC
+END
+
+QUERY HighRiskHoldings
+  SELECT symbol, name, asset_type, risk
+  FROM ENTITY Holding
+  WHERE risk = @high
+END
+
+QUERY TechSectorExposure
+  SELECT symbol, name, sector, quantity, current_price
+  FROM ENTITY Holding
+  WHERE sector = @tech
+END
+
+QUERY RetirementAccounts
+  SELECT symbol, name, quantity, account
+  FROM ENTITY Holding
+  WHERE account = @401k OR account = @ira
+END
+
+QUERY YTDTransactions
+  SELECT Date, Type, Symbol, Quantity, Amount
+  FROM ROW Transactions_2024
+  WHERE Date >= 2024-01-01
+  ORDER BY Date DESC
+END
+
+QUERY TotalDividends
+  SELECT SUM(Amount)
+  FROM ROW Transactions_2024
+  WHERE Type = DIVIDEND
+END
+
+QUERY MonthlyAvgGain
+  SELECT AVG(GainLossPct)
+  FROM ROW MonthlyPerformance
+  WHERE GainLossPct > 0
+END
+
+QUERY AssetRebalanceNeeded
+  SELECT AssetType, Percentage, TargetPct, (Percentage - TargetPct) as Difference
+  FROM ROW AssetAllocation
+  WHERE (Percentage - TargetPct) > 2 OR (Percentage - TargetPct) < -2
+END
+
+QUERY TotalPortfolioValue
+  SELECT SUM(quantity * current_price) as total_value
+  FROM ENTITY Holding
+END
+
+## Portfolio Analysis
+
+The portfolio demonstrates a diversified investment strategy across multiple
+asset classes and accounts. Key observations:
+
+1. **Asset Allocation**: Currently slightly overweight in stocks (42.6% vs 40% target)
+   and underweight in bonds (6.3% vs 10% target).
+
+2. **Performance**: Year-to-date portfolio has grown 24.2% including contributions,
+   with strong performance from crypto holdings and technology stocks.
+
+3. **Risk Profile**: Predominantly medium-risk holdings with strategic high-risk
+   allocation in cryptocurrency (4.9% of portfolio).
+
+4. **Tax Optimization**: Holdings are distributed across tax-advantaged (401k, IRA)
+   and taxable accounts for optimal tax efficiency.
+
+5. **Rebalancing**: Portfolio may benefit from rebalancing to reduce tech sector
+   concentration and increase bond allocation to meet target.
+
+The alias system reduces token usage significantly when AI systems analyze this
+portfolio data, particularly for repeated references to account types, asset
+classes, and risk levels.
+
+The embedded AICQL queries enable quick analysis of holdings, gains/losses,
+sector exposure, and rebalancing needs without requiring external database
+systems or spreadsheet applications.
