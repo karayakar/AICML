@@ -1,119 +1,119 @@
-# Simple Project Tracking Example
+PAGE:
+  id: simple-project-tracker
+  title: Simple Project Tracking Example
+  owner: ops-lab
+  type: project-brief
+  lang: en
 
-A minimal AI:CML document for tracking software development projects.
+META:
+  name: sprint
+  value: Sprint 18
 
-DICT aliases
-  backend: Backend Development
-  frontend: Frontend Development
-  devops: DevOps and Infrastructure
-  design: UI/UX Design
-END
+META:
+  name: manager
+  value: Lila Morgan
 
-DICT statuses
-  todo: Not Started
-  progress: In Progress
-  review: Under Review
-  done: Completed
-END
+SECTION:
+  id: summary
+  level: 1
+  importance: high
 
-## Team Members
+TITLE:
+  Overview
 
-ENTITY Dev_001
-  name: Alice Johnson
-  role: Senior Developer
-  specialty: @backend
-  email: alice@example.com
-END
+P:
+  This lightweight project file tracks the top backlog items, current blockers, and upcoming milestones
+  so stakeholders can review progress without logging into a PM tool.
 
-ENTITY Dev_002
-  name: Bob Smith
-  role: Frontend Developer
-  specialty: @frontend
-  email: bob@example.com
-END
+SECTION:
+  id: blockers
+  level: 1
+  order: 2
 
-ENTITY Dev_003
-  name: Carol Davis
-  role: DevOps Engineer
-  specialty: @devops
-  email: carol@example.com
-END
+TITLE:
+  Blockers & Risks
 
-## Project Tasks
+LIST:
+  style: unordered
 
-ENTITY Task_001
-  id: TASK-001
-  title: Implement user authentication
-  assigned_to: Alice Johnson
-  category: @backend
-  status: @done
-  priority: High
-  estimated_hours: 16
-  actual_hours: 18
-END
+ITEM:
+  Vendor security review pending—final answer due by Nov 28.
 
-ENTITY Task_002
-  id: TASK-002
-  title: Design dashboard UI
-  assigned_to: Bob Smith
-  category: @frontend
-  status: @progress
-  priority: High
-  estimated_hours: 24
-  actual_hours: 12
-END
+ITEM:
+  Data import script fails on legacy CSV delimiter; hotfix ETA 48 hours.
 
-ENTITY Task_003
-  id: TASK-003
-  title: Setup CI/CD pipeline
-  assigned_to: Carol Davis
-  category: @devops
-  status: @review
-  priority: Medium
-  estimated_hours: 12
-  actual_hours: 14
-END
+ENTITY:
+  id: owner-directory
+  kind: team
+  member.1.name: Lila Morgan
+  member.1.role: Project Lead
+  member.2.name: Owen Patel
+  member.2.role: Backend Engineer
+  member.3.name: Samira Iqbal
+  member.3.role: QA Analyst
 
-## Sprint Progress
+DICT:
+  id: dict.tasks.v1
+  kind: task
+  field.i: task_id
+  field.t: title
+  field.o: owner
+  field.s: status
+  field.p: priority
+  field.d: due_date
+  field.b: blocked
 
-ROW Sprint_Week1
-  | TaskID | Status | HoursLogged | RemainingHours |
-  | TASK-001 | @done | 18 | 0 |
-  | TASK-002 | @progress | 12 | 12 |
-  | TASK-003 | @review | 14 | 0 |
-END
+SET:
+  id: sprint-board
+  dict: dict.tasks.v1
+  kind: kanban
 
-## Task Categories
+ROW:
+  i: TSK-101
+  t: Implement vote API baseline
+  o: Owen Patel
+  s: In Progress
+  p: High
+  d: 2025-11-25
+  b: no
 
-SET TaskCategories
-  @backend
-  @frontend
-  @devops
-  @design
-  Testing
-  Documentation
-END
+ROW:
+  i: TSK-102
+  t: Wire dashboard counters
+  o: Samira Iqbal
+  s: Ready for QA
+  p: Medium
+  d: 2025-11-26
+  b: no
 
-## Project Queries
+ROW:
+  i: TSK-103
+  t: Vendor SOC2 review
+  o: Lila Morgan
+  s: Blocked
+  p: High
+  d: 2025-11-28
+  b: yes
 
-QUERY HighPriorityTasks
-  SELECT title, assigned_to, status
-  FROM ENTITY Task
-  WHERE priority = High
-END
+ROW:
+  i: TSK-104
+  t: Legacy CSV import fixes
+  o: Owen Patel
+  s: In Progress
+  p: High
+  d: 2025-11-24
+  b: yes
 
-QUERY InProgressTasks
-  SELECT title, category, assigned_to
-  FROM ENTITY Task
-  WHERE status = @progress
-END
+QUERY:
+  id: q.open-blockers
+  from.set: sprint-board
+  using.dict: dict.tasks.v1
+  select: i,t,o
+  where: b = "yes"
 
-QUERY TotalHoursLogged
-  SELECT SUM(HoursLogged)
-  FROM ROW Sprint_Week1
-END
-
-This simple example demonstrates the core AI:CML features in a
-project tracking context. The format is easy to read and edit
-manually, while still supporting structured queries for project
-management insights.
+QUERY:
+  id: q.status-count
+  from.set: sprint-board
+  using.dict: dict.tasks.v1
+  select: s,count(i)
+  group: s
