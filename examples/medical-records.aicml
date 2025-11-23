@@ -1,195 +1,129 @@
-# Medical Records - AI:CML Example
+PAGE:
+  id: oncology-record-2025-11
+  title: Longitudinal Oncology Record Excerpt
+  owner: clinical-informatics
+  lang: en
+  type: medical-record
 
-This document demonstrates AI:CML format for healthcare data, showing
-how to organize patient records, diagnoses, and treatment information
-while maintaining privacy and structure.
+META:
+  name: hipaa-identifier
+  value: anonymized-hash-92a1
 
-Note: All data in this example is fictional and for demonstration only.
+META:
+  name: facility
+  value: Pacifica Comprehensive Cancer Center
 
-DICT aliases
-  cardio: Cardiovascular System
-  resp: Respiratory System
-  neuro: Neurological System
-  endo: Endocrine System
-  ortho: Orthopedic System
-END
+SECTION:
+  id: visit-summary
+  level: 1
+  importance: high
 
-DICT conditions
-  htn: Hypertension (High Blood Pressure)
-  t2dm: Type 2 Diabetes Mellitus
-  cad: Coronary Artery Disease
-  asthma: Asthma
-  copd: Chronic Obstructive Pulmonary Disease
-END
+TITLE:
+  Latest Ambulatory Visit (2025-11-12)
 
-DICT medications
-  metformin: Metformin (Diabetes medication)
-  lisinopril: Lisinopril (Blood pressure medication)
-  atorvastatin: Atorvastatin (Cholesterol medication)
-  albuterol: Albuterol (Bronchodilator)
-  aspirin: Aspirin (Antiplatelet agent)
-END
+P:
+  The patient presented for cycle 6 adjuvant therapy, reporting manageable fatigue and no new neuropathy.
+  Vitals remained stable (BP 118/74, HR 72). ECOG status stayed at 0.
 
-## Patient Records
+NOTE:
+  type: caution
+  importance: medium
+  text: Monitor mild anemia (Hgb 11.2 g/dL) and ferritin trend; hematology consult queued if level drops below 10.5.
 
-ENTITY Patient_001
-  id: PT-2024-001
-  age: 58
-  gender: Male
-  blood_type: O+
-  height_cm: 178
-  weight_kg: 92
-  bmi: 29.0
-  conditions: @htn, @t2dm
-  medications: @metformin, @lisinopril
-  allergies: Penicillin
-  last_visit: 2024-11-15
-  primary_physician: Dr. Sarah Johnson
-END
+SECTION:
+  id: meds-plan
+  level: 1
+  order: 2
 
-ENTITY Patient_002
-  id: PT-2024-002
-  age: 45
-  gender: Female
-  blood_type: A+
-  height_cm: 165
-  weight_kg: 68
-  bmi: 25.0
-  conditions: @asthma
-  medications: @albuterol
-  allergies: None
-  last_visit: 2024-11-18
-  primary_physician: Dr. Michael Chen
-END
+TITLE:
+  Active Medications & Plan
 
-ENTITY Patient_003
-  id: PT-2024-003
-  age: 72
-  gender: Male
-  blood_type: B-
-  height_cm: 172
-  weight_kg: 85
-  bmi: 28.7
-  conditions: @cad, @htn
-  medications: @atorvastatin, @lisinopril, @aspirin
-  allergies: Sulfa drugs
-  last_visit: 2024-11-20
-  primary_physician: Dr. Sarah Johnson
-END
+LIST:
+  style: unordered
 
-## Vital Signs History
+ITEM:
+  Continue pembrolizumab 200 mg IV every 3 weeks; labs prior to infusion.
 
-ROW VitalSigns_November2024
-  | PatientID | Date | SystolicBP | DiastolicBP | HeartRate | Temperature | O2Saturation |
-  | PT-2024-001 | 2024-11-15 | 138 | 88 | 72 | 36.8 | 98 |
-  | PT-2024-002 | 2024-11-18 | 120 | 75 | 68 | 36.6 | 99 |
-  | PT-2024-003 | 2024-11-20 | 145 | 92 | 78 | 37.0 | 97 |
-END
+ITEM:
+  Oral iron supplementation (65 mg elemental) once daily with vitamin C co-administration.
 
-## Laboratory Results
+ITEM:
+  PRN ondansetron 4 mg for breakthrough nausea; max 3 doses per day.
 
-ROW LabResults_Q4_2024
-  | PatientID | TestDate | Glucose | HbA1c | Cholesterol | HDL | LDL | Triglycerides |
-  | PT-2024-001 | 2024-11-15 | 142 | 7.2 | 198 | 42 | 125 | 155 |
-  | PT-2024-002 | 2024-11-18 | 92 | 5.4 | 175 | 58 | 98 | 95 |
-  | PT-2024-003 | 2024-11-20 | 105 | 5.8 | 185 | 48 | 112 | 125 |
-END
+ENTITY:
+  id: patient-profile
+  kind: patient
+  age.years: 47
+  sex: female
+  diagnosis.primary: Stage IIIB triple-negative breast cancer
+  diagnosis.date: 2024-06-18
+  genomics.braca1: negative
+  genomics.braca2: negative
+  allergies: penicillin
 
-## Appointment Schedule
+DICT:
+  id: dict.vitals.lab.v1
+  kind: measurement
+  field.ts: timestamp
+  field.bp: blood_pressure
+  field.hr: heart_rate
+  field.temp: temperature_c
+  field.hgb: hemoglobin_g_dl
+  field.wbc: wbc_k_ul
+  field.plt: platelets_k_ul
 
-ROW Appointments_December2024
-  | PatientID | Date | Time | Provider | Type | Status |
-  | PT-2024-001 | 2024-12-15 | 10:00 | Dr. Sarah Johnson | Follow-up | Scheduled |
-  | PT-2024-002 | 2024-12-10 | 14:30 | Dr. Michael Chen | Check-up | Scheduled |
-  | PT-2024-003 | 2024-12-18 | 09:15 | Dr. Sarah Johnson | Follow-up | Scheduled |
-END
+SET:
+  id: vitals-rolling-6w
+  dict: dict.vitals.lab.v1
+  kind: measurements
 
-## Medical Staff
+ROW:
+  ts: 2025-10-01
+  bp: 116/72
+  hr: 70
+  temp: 36.6
+  hgb: 11.4
+  wbc: 5.8
+  plt: 232
 
-ENTITY Physician_001
-  id: PHYS-001
-  name: Dr. Sarah Johnson
-  specialty: Internal Medicine
-  license: MD-12345
-  patients_count: 245
-  years_experience: 15
-END
+ROW:
+  ts: 2025-10-22
+  bp: 117/73
+  hr: 71
+  temp: 36.7
+  hgb: 11.3
+  wbc: 5.5
+  plt: 225
 
-ENTITY Physician_002
-  id: PHYS-002
-  name: Dr. Michael Chen
-  specialty: Pulmonology
-  license: MD-23456
-  patients_count: 180
-  years_experience: 12
-END
+ROW:
+  ts: 2025-11-12
+  bp: 118/74
+  hr: 72
+  temp: 36.8
+  hgb: 11.2
+  wbc: 5.4
+  plt: 219
 
-## Common Diagnoses
+ENTITY:
+  id: imaging-result-ct
+  kind: imaging
+  modality: CT chest/abdomen/pelvis with contrast
+  date: 2025-09-30
+  impression.summary: No new lesions; residual nodal disease reduced by 18% per RECIST.
+  impression.rec: Continue current regimen; repeat scan after cycle 8.
 
-SET CommonConditions
-  @htn
-  @t2dm
-  @cad
-  @asthma
-  @copd
-  Arthritis
-  Depression
-  Anxiety
-END
+QUERY:
+  id: q.lab-trend
+  from.set: vitals-rolling-6w
+  using.dict: dict.vitals.lab.v1
+  select: ts,hgb,plt
+  where: ts >= "2025-09-01"
+  sort: ts asc
 
-SET PrescribedMedications
-  @metformin
-  @lisinopril
-  @atorvastatin
-  @albuterol
-  @aspirin
-END
-
-## Clinical Queries
-
-QUERY HighRiskPatients
-  SELECT id, age, conditions, bmi
-  FROM ENTITY Patient
-  WHERE bmi > 28 AND age > 60
-  ORDER BY age DESC
-END
-
-QUERY DiabeticPatients
-  SELECT id, age, medications
-  FROM ENTITY Patient
-  WHERE conditions CONTAINS @t2dm
-END
-
-QUERY ElevatedBloodPressure
-  SELECT PatientID, Date, SystolicBP, DiastolicBP
-  FROM ROW VitalSigns_November2024
-  WHERE SystolicBP > 140 OR DiastolicBP > 90
-END
-
-QUERY UpcomingAppointments
-  SELECT PatientID, Date, Time, Provider
-  FROM ROW Appointments_December2024
-  WHERE Status = Scheduled
-  ORDER BY Date ASC
-END
-
-QUERY AbnormalLabResults
-  SELECT PatientID, Glucose, HbA1c, Cholesterol
-  FROM ROW LabResults_Q4_2024
-  WHERE Glucose > 125 OR HbA1c > 6.5 OR Cholesterol > 200
-END
-
-## Clinical Notes
-
-This medical records database demonstrates how AI:CML can structure
-healthcare information for efficient retrieval and analysis. The alias
-system reduces token usage by defining medical terms once and reusing
-them throughout patient records.
-
-The embedded queries enable quick identification of at-risk patients,
-medication tracking, and appointment management without requiring
-separate database queries or external systems.
-
-Privacy Note: In production systems, patient data would be encrypted
-and access-controlled. This example uses fictional data for
-demonstration purposes only.
+QUERY:
+  id: q.flagged-metrics
+  from.set: vitals-rolling-6w
+  using.dict: dict.vitals.lab.v1
+  select: ts,hgb
+  where: hgb < 11.0
+  limit: 3
